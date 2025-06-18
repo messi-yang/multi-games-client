@@ -1,6 +1,4 @@
-import { BlockDto } from '../dtos/block-dto';
 import { PlayerDto } from '../dtos/player-dto';
-import { UnitDto } from '../dtos/unit-dto';
 import { WorldDto } from '../dtos/world-dto';
 import { CommandDto } from './command-dtos';
 
@@ -10,7 +8,6 @@ export enum ServerEventNameEnum {
   PlayerLeft = 'PLAYER_LEFT',
   CommandReceived = 'COMMAND_RECEIVED',
   CommandFailed = 'COMMAND_FAILED',
-  UnitsReturned = 'UNITS_RETURNED',
   P2pOfferReceived = 'P2P_OFFER_RECEIVED',
   P2pAnswerReceived = 'P2P_ANSWER_RECEIVED',
   Errored = 'ERRORED',
@@ -19,8 +16,6 @@ export enum ServerEventNameEnum {
 export type WorldEnteredServerEvent = {
   name: ServerEventNameEnum.WorldEntered;
   world: WorldDto;
-  blocks: BlockDto[];
-  units: UnitDto[];
   myPlayerId: string;
   players: PlayerDto[];
 };
@@ -43,12 +38,6 @@ export type CommandReceivedServerEvent = {
 export type CommandFailedServerEvent = {
   name: ServerEventNameEnum.CommandFailed;
   commandId: string;
-};
-
-export type UnitsReturnedServerEvent = {
-  name: ServerEventNameEnum.UnitsReturned;
-  blocks: BlockDto[];
-  units: UnitDto[];
 };
 
 export type P2pOfferReceivedServerEvent = {
@@ -76,7 +65,6 @@ export type ServerEvent =
   | PlayerLeftServerEvent
   | CommandReceivedServerEvent
   | CommandFailedServerEvent
-  | UnitsReturnedServerEvent
   | P2pOfferReceivedServerEvent
   | P2pAnswerReceivedServerEvent
   | ErroredServerEvent;

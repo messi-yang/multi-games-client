@@ -7,7 +7,6 @@ import { WorldJourneyServiceProvider } from '@/contexts/world-journey-service-co
 import { MyWorldsProvider } from '@/contexts/my-worlds-context';
 import { WorldMembersProvider } from '@/contexts/world-members-context';
 import { NotificationProvider } from '@/contexts/notification-context';
-import { WorldJourneyServiceLoadTestProvider } from '@/contexts/world-journey-load-test-context';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -21,13 +20,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <NotificationProvider>
           <UserProvider>
             <AuthProvider>
-              <WorldJourneyServiceLoadTestProvider>
-                <WorldJourneyServiceProvider>
-                  <MyWorldsProvider>
-                    <WorldMembersProvider>{children}</WorldMembersProvider>
-                  </MyWorldsProvider>
-                </WorldJourneyServiceProvider>
-              </WorldJourneyServiceLoadTestProvider>
+              <WorldJourneyServiceProvider>
+                <MyWorldsProvider>
+                  <WorldMembersProvider>{children}</WorldMembersProvider>
+                </MyWorldsProvider>
+              </WorldJourneyServiceProvider>
             </AuthProvider>
           </UserProvider>
         </NotificationProvider>

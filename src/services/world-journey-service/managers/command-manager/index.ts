@@ -4,16 +4,12 @@ import { EventHandler, EventHandlerSubscriber } from '../../../../event-dispatch
 import { DateVo } from '@/models/global/date-vo';
 import { WorldModel } from '@/models/world/world/world-model';
 import { PlayerManager } from '../player-manager';
-import { UnitManager } from '../unit-manager';
-import { ItemManager } from '../item-manager';
 import { PerspectiveManager } from '../perspective-manager';
 
 export class CommandManager {
   constructor(
     private world: WorldModel,
     private playerManager: PlayerManager,
-    private unitManager: UnitManager,
-    private itemManager: ItemManager,
     private perspectiveManager: PerspectiveManager,
     private executedCommands: Command[] = [],
     private executedCommandMap: Record<string, Command | undefined> = {},
@@ -26,20 +22,10 @@ export class CommandManager {
      * are not loaded yet when getting executed.
      */
     private bufferedCommandsByRequiredItem: Map<string, Command[]> = new Map()
-  ) {
-    this.itemManager.subscribeItemAddedEvent((item) => {
-      this.executeBufferedCommandsOfRequiredItem(item.getId());
-    });
-  }
+  ) {}
 
-  static create(
-    world: WorldModel,
-    playerManager: PlayerManager,
-    unitManager: UnitManager,
-    itemManager: ItemManager,
-    perspectiveManager: PerspectiveManager
-  ) {
-    return new CommandManager(world, playerManager, unitManager, itemManager, perspectiveManager);
+  static create(world: WorldModel, playerManager: PlayerManager, perspectiveManager: PerspectiveManager) {
+    return new CommandManager(world, playerManager, perspectiveManager);
   }
 
   private getExecutedCommand(id: string): Command | null {
@@ -167,39 +153,14 @@ export class CommandManager {
     const hasCommandAlreadyFailed = this.doesFailedCommandExist(commandId);
     if (hasCommandAlreadyFailed) return false;
 
-    const requiredItemId = command.getRequiredItemId();
-    if (requiredItemId) {
-      const requiredItem = this.itemManager.getItem(requiredItemId);
-      // If required item is not yet loaded
-      if (!requiredItem) {
-        this.itemManager.addPlaceholderItemId(requiredItemId);
-        const bufferedCommands = this.bufferedCommandsByRequiredItem.get(requiredItemId);
-        this.bufferedCommandsByRequiredItem.set(requiredItemId, bufferedCommands ? [...bufferedCommands, command] : [command]);
-        return false;
-      }
-    }
-
     command.execute({
       world: this.world,
       playerManager: this.playerManager,
-      itemManager: this.itemManager,
       perspectiveManager: this.perspectiveManager,
-      unitManager: this.unitManager,
     });
     this.addExecutedCommand(command);
 
     return true;
-  }
-
-  private executeBufferedCommandsOfRequiredItem(itemId: string): void {
-    const bufferedCommands = this.bufferedCommandsByRequiredItem.get(itemId);
-    if (!bufferedCommands) return;
-
-    bufferedCommands.forEach((command) => {
-      this.executeCommand(command);
-    });
-
-    this.bufferedCommandsByRequiredItem.delete(itemId);
   }
 
   public subscribeLocalCommandExecutedEvent(subscriber: EventHandlerSubscriber<Command>): () => void {
