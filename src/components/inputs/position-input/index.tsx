@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import classnames from 'classnames';
 import { dataTestids } from './data-test-ids';
-import { PositionVo } from '@/models/world/common/position-vo';
+import { PositionVo } from '@/models/game/common/position-vo';
 import { NumberInput } from '../number-input';
 
 type Props = {

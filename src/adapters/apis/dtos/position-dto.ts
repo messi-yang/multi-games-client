@@ -1,4 +1,4 @@
-import { PositionVo } from '@/models/world/common/position-vo';
+import { PositionVo } from '@/models/game/common/position-vo';
 
 type PositionDto = {
   x: number;

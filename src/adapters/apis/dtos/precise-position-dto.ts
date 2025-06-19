@@ -1,4 +1,4 @@
-import { PrecisePositionVo } from '@/models/world/common/precise-position-vo';
+import { PrecisePositionVo } from '@/models/game/common/precise-position-vo';
 
 type PrecisePositionDto = {
   x: number;

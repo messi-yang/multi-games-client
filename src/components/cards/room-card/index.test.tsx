@@ -1,16 +1,16 @@
 import { render, RenderResult, screen } from '@testing-library/react';
+import { RoomModel } from '@/models/game/room/room-model';
 import { dataTestids } from './data-test-ids';
-import { PositionInput } from '.';
-import { PositionVo } from '@/models/game/common/position-vo';
+import { RoomCard } from '.';
 
-function renderPositionInput(): RenderResult {
-  return render(<PositionInput value={PositionVo.create(0, 0)} onInput={() => {}} />);
+function renderRoomCard(): RenderResult {
+  return render(<RoomCard room={RoomModel.createMock()} />);
 }
 
-describe('PositionInput', () => {
+describe('RoomCard', () => {
   it('Should render component successfully.', () => {
     try {
-      renderPositionInput();
+      renderRoomCard();
       const wrapper = screen.getByTestId(dataTestids.root);
       expect(wrapper).toBeInTheDocument();
     } catch (e) {

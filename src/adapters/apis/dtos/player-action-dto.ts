@@ -1,7 +1,7 @@
-import { PlayerActionNameEnum } from '@/models/world/player/player-action-name-enum';
-import { PlayerActionVo } from '@/models/world/player/player-action-vo';
-import { DirectionEnum } from '@/models/world/common/direction-enum';
-import { DirectionVo } from '@/models/world/common/direction-vo';
+import { PlayerActionNameEnum } from '@/models/game/player/player-action-name-enum';
+import { PlayerActionVo } from '@/models/game/player/player-action-vo';
+import { DirectionEnum } from '@/models/game/common/direction-enum';
+import { DirectionVo } from '@/models/game/common/direction-vo';
 
 export type PlayerActionDto = {
   name: PlayerActionNameEnum;

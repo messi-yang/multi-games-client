@@ -26,8 +26,8 @@ export function DashboardLayout({ panel, children }: Props) {
       <div className="flex-grow flex gap-6">
         <div className="w-48 h-full flex flex-col shadow-xl">
           <div className="h-full rounded-3xl bg-stone-800 p-5 flex flex-col items-center">
-            <Link href="/dashboard/worlds">
-              <Text>My worlds</Text>
+            <Link href="/dashboard/rooms">
+              <Text>My rooms</Text>
             </Link>
           </div>
         </div>

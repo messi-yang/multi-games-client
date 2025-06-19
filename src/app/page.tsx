@@ -16,8 +16,8 @@ export default function Page() {
       </div>
       <div className="mt-8 sm:mt-20 flex flex-col items-center">
         <div className="mt-4">
-          <Link href="/dashboard/worlds">
-            <Button text="Browse Worlds" />
+          <Link href="/dashboard/rooms">
+            <Button text="Browse Rooms" />
           </Link>
         </div>
       </div>

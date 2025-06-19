@@ -3,9 +3,9 @@
 import './tailwind.css';
 import { UserProvider } from '@/contexts/user-context';
 import { AuthProvider } from '@/contexts/auth-context';
-import { WorldJourneyServiceProvider } from '@/contexts/world-journey-service-context';
-import { MyWorldsProvider } from '@/contexts/my-worlds-context';
-import { WorldMembersProvider } from '@/contexts/world-members-context';
+import { RoomJourneyServiceProvider } from '@/contexts/room-journey-service-context';
+import { MyRoomsProvider } from '@/contexts/my-rooms-context';
+import { RoomMembersProvider } from '@/contexts/room-members-context';
 import { NotificationProvider } from '@/contexts/notification-context';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -20,11 +20,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <NotificationProvider>
           <UserProvider>
             <AuthProvider>
-              <WorldJourneyServiceProvider>
-                <MyWorldsProvider>
-                  <WorldMembersProvider>{children}</WorldMembersProvider>
-                </MyWorldsProvider>
-              </WorldJourneyServiceProvider>
+              <RoomJourneyServiceProvider>
+                <MyRoomsProvider>
+                  <RoomMembersProvider>{children}</RoomMembersProvider>
+                </MyRoomsProvider>
+              </RoomJourneyServiceProvider>
             </AuthProvider>
           </UserProvider>
         </NotificationProvider>

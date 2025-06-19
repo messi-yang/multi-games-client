@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Meta, StoryObj } from '@storybook/react';
 
 import { PositionInput } from '.';
-import { PositionVo } from '@/models/world/common/position-vo';
+import { PositionVo } from '@/models/game/common/position-vo';
 
 export default {
   title: 'Input/PositionInput',

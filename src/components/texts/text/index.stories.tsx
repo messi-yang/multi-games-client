@@ -19,5 +19,5 @@ const Template: StoryFn<typeof Text> = function Template(args) {
 
 export const Primary = Template.bind({});
 Primary.args = {
-  children: 'Hello World',
+  children: 'Hello Room',
 };

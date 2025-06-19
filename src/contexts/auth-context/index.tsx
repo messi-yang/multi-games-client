@@ -37,7 +37,7 @@ function Provider({ children }: Props) {
   const [authSessionStorage] = useState(() => AuthSessionStorage.get());
   const router = useRouter();
   const pathname = usePathname();
-  const [clientRedirectPath, setClientRedirectPath] = useState('/dashboard/worlds');
+  const [clientRedirectPath, setClientRedirectPath] = useState('/dashboard/rooms');
   const setOauthClientRedirectPath = useCallback((path: string) => {
     setClientRedirectPath(path);
   }, []);

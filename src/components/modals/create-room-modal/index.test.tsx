@@ -1,16 +1,15 @@
 import { render, RenderResult, screen } from '@testing-library/react';
 import { dataTestids } from './data-test-ids';
-import { PositionInput } from '.';
-import { PositionVo } from '@/models/game/common/position-vo';
+import { CreateRoomModal } from '.';
 
-function renderPositionInput(): RenderResult {
-  return render(<PositionInput value={PositionVo.create(0, 0)} onInput={() => {}} />);
+function renderCreateRoomModal(): RenderResult {
+  return render(<CreateRoomModal opened onConfirm={() => {}} onCancel={() => {}} />);
 }
 
-describe('PositionInput', () => {
+describe('CreateRoomModal', () => {
   it('Should render component successfully.', () => {
     try {
-      renderPositionInput();
+      renderCreateRoomModal();
       const wrapper = screen.getByTestId(dataTestids.root);
       expect(wrapper).toBeInTheDocument();
     } catch (e) {

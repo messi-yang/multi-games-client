@@ -12,12 +12,12 @@ export default function Page() {
   const router = useRouter();
   useEffect(() => {
     if (isSingedIn) {
-      router.push('/dashboard/worlds');
+      router.push('/dashboard/rooms');
     }
   }, [isSingedIn]);
 
   const handleGoogleLoginClick = () => {
-    setOauthClientRedirectPath('/dashboard/worlds');
+    setOauthClientRedirectPath('/dashboard/rooms');
     startGoogleOauthFlow();
   };
 

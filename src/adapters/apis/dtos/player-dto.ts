@@ -1,7 +1,7 @@
-import { PlayerModel } from '@/models/world/player/player-model';
+import { PlayerModel } from '@/models/game/player/player-model';
 import { PlayerActionDto, parsePlayerActionDto } from './player-action-dto';
 import { PrecisePositionDto } from './precise-position-dto';
-import { PrecisePositionVo } from '@/models/world/common/precise-position-vo';
+import { PrecisePositionVo } from '@/models/game/common/precise-position-vo';
 
 type PlayerDto = {
   id: string;
