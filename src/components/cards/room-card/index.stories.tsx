@@ -1,6 +1,6 @@
 import React from 'react';
 import { StoryFn, Meta } from '@storybook/react';
-import { RoomModel } from '@/models/game/room/room-model';
+import { RoomModel } from '@/models/room/room-model';
 
 import { RoomCard } from '.';
 

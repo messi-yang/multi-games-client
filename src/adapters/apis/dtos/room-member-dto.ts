@@ -1,6 +1,6 @@
 import { UserDto, parseUserDto } from './user-dto';
 import { RoomRoleDto, parseRoomRoleDto } from './room-role-dto';
-import { RoomMemberModel } from '@/models/iam/room-member-model';
+import { RoomMemberModel } from '@/models/room-member-model';
 
 type RoomMemberDto = {
   id: string;

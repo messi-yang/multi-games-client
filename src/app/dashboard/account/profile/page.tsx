@@ -8,7 +8,7 @@ import { Text } from '@/components/texts/text';
 import { Field } from '@/components/fields/field';
 import { Input } from '@/components/inputs/input';
 import { Button } from '@/components/buttons/button';
-import { UserModel } from '@/models/iam/user-model';
+import { UserModel } from '@/models/user-model';
 import { AuthContext } from '@/contexts/auth-context';
 
 const Page: NextPage = function Page() {

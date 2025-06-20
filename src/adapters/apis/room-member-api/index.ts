@@ -1,6 +1,6 @@
 import { Axios } from 'axios';
 import { AxiosProvider } from '@/adapters/apis/axios-provider';
-import { RoomMemberModel } from '@/models/iam/room-member-model';
+import { RoomMemberModel } from '@/models/room-member-model';
 import { RoomMemberDto, parseRoomMemberDto } from '../dtos/room-member-dto';
 
 export class RoomMemberApi {

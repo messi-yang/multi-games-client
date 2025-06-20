@@ -1,5 +1,5 @@
 import { Axios } from 'axios';
-import { RoomModel } from '@/models/game/room/room-model';
+import { RoomModel } from '@/models/room/room-model';
 import { AxiosProvider } from '@/adapters/apis/axios-provider';
 import { RoomDto, parseRoomDto } from '../dtos/room-dto';
 

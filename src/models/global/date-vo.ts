@@ -17,7 +17,7 @@ export class DateVo {
     return this.date.toString();
   }
 
-  public getTimestamp() {
+  public toTimestamp() {
     return this.date.getTime();
   }
 
@@ -56,8 +56,8 @@ export class DateVo {
   }
 
   public isBetween(dateA: DateVo, dateB: DateVo) {
-    const timestamp = this.getTimestamp();
+    const timestamp = this.toTimestamp();
 
-    return timestamp >= dateA.getTimestamp() && timestamp <= dateB.getTimestamp();
+    return timestamp >= dateA.toTimestamp() && timestamp <= dateB.toTimestamp();
   }
 }

@@ -2,7 +2,7 @@ import React from 'react';
 import { StoryFn, Meta } from '@storybook/react';
 
 import { RoomMemberCard } from '.';
-import { RoomMemberModel } from '@/models/iam/room-member-model';
+import { RoomMemberModel } from '@/models/room-member-model';
 
 export default {
   title: 'Card/RoomMemberCard',

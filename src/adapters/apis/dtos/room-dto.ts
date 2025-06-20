@@ -1,4 +1,4 @@
-import { RoomModel } from '@/models/game/room/room-model';
+import { RoomModel } from '@/models/room/room-model';
 import { DateVo } from '@/models/global/date-vo';
 
 type RoomDto = {

@@ -3,7 +3,7 @@
 import './tailwind.css';
 import { UserProvider } from '@/contexts/user-context';
 import { AuthProvider } from '@/contexts/auth-context';
-import { RoomJourneyServiceProvider } from '@/contexts/room-journey-service-context';
+import { RoomServiceProvider } from '@/contexts/room-service-context';
 import { MyRoomsProvider } from '@/contexts/my-rooms-context';
 import { RoomMembersProvider } from '@/contexts/room-members-context';
 import { NotificationProvider } from '@/contexts/notification-context';
@@ -20,11 +20,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <NotificationProvider>
           <UserProvider>
             <AuthProvider>
-              <RoomJourneyServiceProvider>
+              <RoomServiceProvider>
                 <MyRoomsProvider>
                   <RoomMembersProvider>{children}</RoomMembersProvider>
                 </MyRoomsProvider>
-              </RoomJourneyServiceProvider>
+              </RoomServiceProvider>
             </AuthProvider>
           </UserProvider>
         </NotificationProvider>

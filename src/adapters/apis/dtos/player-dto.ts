@@ -1,22 +1,12 @@
-import { PlayerModel } from '@/models/game/player/player-model';
-import { PlayerActionDto, parsePlayerActionDto } from './player-action-dto';
-import { PrecisePositionDto } from './precise-position-dto';
-import { PrecisePositionVo } from '@/models/game/common/precise-position-vo';
+import { PlayerModel } from '@/models/player/player-model';
 
 type PlayerDto = {
   id: string;
   name: string;
-  precisePosition: PrecisePositionDto;
-  action: PlayerActionDto;
 };
 
 function parsePlayerDto(playerDto: PlayerDto): PlayerModel {
-  return PlayerModel.create(
-    playerDto.id,
-    playerDto.name,
-    parsePlayerActionDto(playerDto.action),
-    PrecisePositionVo.create(playerDto.precisePosition.x, playerDto.precisePosition.z)
-  );
+  return PlayerModel.create(playerDto.id, playerDto.name);
 }
 
 export type { PlayerDto };

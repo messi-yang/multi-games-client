@@ -8,7 +8,7 @@ import { MyRoomsContext } from '@/contexts/my-rooms-context';
 import { RoomCard } from '@/components/cards/room-card';
 import { DashboardLayout } from '@/layouts/dashboard-layout';
 import { ConfirmModal } from '@/components/modals/confirm-modal';
-import { RoomModel } from '@/models/game/room/room-model';
+import { RoomModel } from '@/models/room/room-model';
 import { Button } from '@/components/buttons/button';
 import { CreateRoomModal } from '@/components/modals/create-room-modal';
 import { Text } from '@/components/texts/text';

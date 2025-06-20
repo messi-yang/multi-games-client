@@ -1,5 +1,5 @@
 import classnames from 'classnames';
-import { RoomMemberModel } from '@/models/iam/room-member-model';
+import { RoomMemberModel } from '@/models/room-member-model';
 import { Text } from '@/components/texts/text';
 import { dataTestids } from './data-test-ids';
 import { UserAvatar } from '@/components/avatars/user-avatar';

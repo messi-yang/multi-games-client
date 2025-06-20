@@ -1,6 +1,6 @@
 import { createContext, useCallback, useState, useMemo } from 'react';
 import { RoomMemberApi } from '@/adapters/apis/room-member-api';
-import { RoomMemberModel } from '@/models/iam/room-member-model';
+import { RoomMemberModel } from '@/models/room-member-model';
 
 type ContextValue = {
   getRoomMembers: (roomId: string) => Promise<void>;

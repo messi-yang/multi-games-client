@@ -2,8 +2,8 @@ import React from 'react';
 import { StoryFn, Meta } from '@storybook/react';
 
 import { ShareRoomModal } from '.';
-import { RoomMemberModel } from '@/models/iam/room-member-model';
-import { RoomModel } from '@/models/game/room/room-model';
+import { RoomMemberModel } from '@/models/room-member-model';
+import { RoomModel } from '@/models/room/room-model';
 
 export default {
   title: 'Modal/ShareRoomModal',

@@ -1,4 +1,4 @@
-import { RoomRoleVo } from '@/models/global/room-role-vo';
+import { RoomRoleVo } from '@/models/room-role-vo';
 
 type RoomRoleDto = 'owner' | 'admin' | 'editor' | 'viewer';
 

@@ -1,5 +1,5 @@
 import classnames from 'classnames';
-import { RoomModel } from '@/models/game/room/room-model';
+import { RoomModel } from '@/models/room/room-model';
 import { Text } from '@/components/texts/text';
 import { IconButton } from '@/components/buttons/icon-button';
 import defaultImage from './default-image.jpg';

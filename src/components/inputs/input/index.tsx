@@ -10,11 +10,14 @@ type Props = {
 };
 
 export function Input({ value, disabled = false, placeholder = '', onInput = () => {} }: Props) {
-  const handleInput: FormEventHandler<HTMLInputElement> = useCallback((e) => {
-    // @ts-ignore
-    const newValue = e.target.value as string;
-    onInput(newValue);
-  }, []);
+  const handleInput: FormEventHandler<HTMLInputElement> = useCallback(
+    (e) => {
+      // @ts-ignore
+      const newValue = e.target.value as string;
+      onInput(newValue);
+    },
+    [onInput]
+  );
 
   return (
     <input

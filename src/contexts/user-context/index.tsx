@@ -1,7 +1,7 @@
 import { createContext, useCallback, useState, useMemo, useEffect } from 'react';
 import { UserApi } from '@/adapters/apis/user-api';
 import { AuthSessionStorage } from '@/adapters/storages/auth-session-storage';
-import { UserModel } from '@/models/iam/user-model';
+import { UserModel } from '@/models/user-model';
 
 type ContextValue = {
   user: UserModel | null;

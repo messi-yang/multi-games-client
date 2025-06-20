@@ -1,6 +1,6 @@
 import { createContext, useCallback, useState, useMemo } from 'react';
 import { RoomApi } from '@/adapters/apis/room-api';
-import { RoomModel } from '@/models/game/room/room-model';
+import { RoomModel } from '@/models/room/room-model';
 import { NotificationEventDispatcher } from '@/event-dispatchers/notification-event-dispatcher';
 
 type StatusMap = {

@@ -1,5 +1,5 @@
 import { render, RenderResult, screen } from '@testing-library/react';
-import { RoomMemberModel } from '@/models/iam/room-member-model';
+import { RoomMemberModel } from '@/models/room-member-model';
 import { dataTestids } from './data-test-ids';
 import { RoomMemberCard } from '.';
 

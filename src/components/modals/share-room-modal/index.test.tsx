@@ -1,8 +1,8 @@
 import { render, RenderResult, screen } from '@testing-library/react';
 import { dataTestids } from './data-test-ids';
 import { ShareRoomModal } from '.';
-import { RoomMemberModel } from '@/models/iam/room-member-model';
-import { RoomModel } from '@/models/game/room/room-model';
+import { RoomMemberModel } from '@/models/room-member-model';
+import { RoomModel } from '@/models/room/room-model';
 
 function renderShareRoomModal(): RenderResult {
   return render(
