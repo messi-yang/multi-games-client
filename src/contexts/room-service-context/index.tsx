@@ -10,18 +10,26 @@ type ConnectionStatus = 'WAITING' | 'CONNECTING' | 'OPEN' | 'DISCONNECTED';
 type ContextValue = {
   roomService: RoomService | null;
   connectionStatus: ConnectionStatus;
-  game: GameModel<object> | null;
+  currentGame: GameModel<object> | null;
+  myPlayerId: string | null;
+  hostPlayerId: string | null;
   players: PlayerModel[];
   joinRoom: (roomId: string) => void;
+  startGame: () => void;
+  setupNewGame: (gameName: string) => void;
   leaveRoom: () => void;
 };
 
 const Context = createContext<ContextValue>({
   roomService: null,
   connectionStatus: 'WAITING',
-  game: null,
+  currentGame: null,
+  myPlayerId: null,
+  hostPlayerId: null,
   players: [],
   joinRoom: () => {},
+  startGame: () => {},
+  setupNewGame: () => {},
   leaveRoom: () => {},
 });
 
@@ -40,21 +48,27 @@ export function Provider({ children }: Props) {
 
   const roomApi = useRef<RoomServiceApi | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('WAITING');
-  const [game, setGame] = useState<GameModel<object> | null>(null);
+  const [currentGame, setCurrentGame] = useState<GameModel<object> | null>(null);
   useEffect(() => {
     if (!roomService) return () => {};
-    return roomService.subscribe('GAME_UPDATED', (newGame) => {
-      setGame(newGame);
+    return roomService.subscribe('CURRENT_GAME_UPDATED', (newGame) => {
+      setCurrentGame(newGame);
     });
   }, [roomService]);
 
+  useEffect(() => {
+    if (!roomService) return () => {};
+    return roomService.subscribe('NEW_GAME_SETUP', (newGame) => {
+      setCurrentGame(newGame);
+    });
+  }, [roomService]);
   const [players, setPlayers] = useState<PlayerModel[]>([]);
-  // useEffect(() => {
-  //   if (!roomService) return () => {};
-  //   return roomService.subscribe('PLAYERS_UPDATED', (newPlayers) => {
-  //     setPlayers(newPlayers);
-  //   });
-  // }, [roomService]);
+  useEffect(() => {
+    if (!roomService) return () => {};
+    return roomService.subscribe('PLAYERS_UPDATED', (newPlayers) => {
+      setPlayers(newPlayers);
+    });
+  }, [roomService]);
 
   const leaveRoom = useCallback(() => {
     roomApi.current?.disconnect();
@@ -62,6 +76,23 @@ export function Provider({ children }: Props) {
     setRoomService(null);
     setConnectionStatus('WAITING');
   }, []);
+
+  const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!roomService) return () => {};
+    return roomService.subscribe('MY_PLAYER_ID_UPDATED', (newMyPlayerId) => {
+      setMyPlayerId(newMyPlayerId);
+    });
+  }, [roomService]);
+
+  const [hostPlayerId, setHostPlayerId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!roomService) return () => {};
+    return roomService.subscribe('HOST_PLAYER_ID_UPDATED', (newHostPlayerId) => {
+      setHostPlayerId(newHostPlayerId);
+    });
+  }, [roomService]);
 
   const joinRoom = useCallback((roomId: string) => {
     if (roomApi.current) {
@@ -74,16 +105,22 @@ export function Provider({ children }: Props) {
       onRoomJoined: (_roomService) => {
         newRoomService = _roomService;
         setRoomService(_roomService);
-        setPlayers(_roomService.getPlayers());
-        setGame(_roomService.getCurrentGame());
+      },
+      onGameStarted: (game) => {
+        if (!newRoomService) return;
+        newRoomService.startGame(game);
+      },
+      onNewGameSetup: (game) => {
+        if (!newRoomService) return;
+        newRoomService.setupNewGame(game);
       },
       onPlayerJoined: (player) => {
         if (!newRoomService) return;
-        setPlayers((prevPlayers) => [...prevPlayers, player]);
+        newRoomService.addPlayer(player);
       },
       onPlayerLeft: (playerId) => {
         if (!newRoomService) return;
-        setPlayers((prevPlayers) => prevPlayers.filter((player) => player.getId() !== playerId));
+        newRoomService.removePlayer(playerId);
       },
       onCommandReceived: (command) => {
         if (!newRoomService) return;
@@ -109,6 +146,20 @@ export function Provider({ children }: Props) {
     roomApi.current = newRoomServiceApi;
   }, []);
 
+  const startGame = useCallback(() => {
+    if (!roomApi.current || !roomService || !currentGame) return;
+
+    roomApi.current.startGame(currentGame.getId(), currentGame.generateInitialState(players));
+  }, [roomService, players, currentGame, roomApi]);
+
+  const setupNewGame = useCallback(
+    (gameName: string) => {
+      if (!roomApi.current || !roomService || !currentGame) return;
+      roomApi.current.setupNewGame(gameName);
+    },
+    [roomService, currentGame, roomApi]
+  );
+
   useEffect(() => {
     if (!roomService) return () => {};
 
@@ -122,9 +173,13 @@ export function Provider({ children }: Props) {
   const context = {
     roomService,
     connectionStatus,
-    game,
+    currentGame,
+    myPlayerId,
+    hostPlayerId,
     players,
     joinRoom,
+    startGame,
+    setupNewGame,
     leaveRoom,
   };
 

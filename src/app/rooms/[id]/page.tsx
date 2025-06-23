@@ -4,6 +4,7 @@ import { useEffect, useCallback, useRef, KeyboardEventHandler, useContext, useSt
 
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { twMerge } from 'tailwind-merge';
 
 import { RoomServiceContext } from '@/contexts/room-service-context';
 import { MessageModal } from '@/components/modals/message-modal';
@@ -11,8 +12,10 @@ import { AuthContext } from '@/contexts/auth-context';
 import { RoomMembersContext } from '@/contexts/room-members-context';
 import { Button } from '@/components/buttons/button';
 import { ShareRoomModal } from '@/components/modals/share-room-modal';
-import { PlayerCard } from '@/components/cards/player-card';
-import { HelloWorldGameSayHelloCommand } from '@/models/game/games/hello-world/commands/hello-world-game-say-hello-commands';
+import { HelloWorldGameBoard } from '@/components/games/hello-world-game/board';
+import { HelloWorldGameModel } from '@/models/game/games/hello-world/hello-world-game-model';
+import { CommandModel } from '@/models/game/command-model';
+import { HelloWorldGameRoom } from '@/components/games/hello-world-game/room';
 
 const Page = function Page({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -36,32 +39,18 @@ const Page = function Page({ params }: { params: Promise<{ id: string }> }) {
   }, [isSingedIn, roomId, getRoomMembers]);
 
   const mapContainerRef = useRef<HTMLElement | null>(null);
-  const { roomService, connectionStatus, players, joinRoom, leaveRoom } = useContext(RoomServiceContext);
+  const { roomService, connectionStatus, players, myPlayerId, hostPlayerId, joinRoom, leaveRoom, currentGame, startGame, setupNewGame } =
+    useContext(RoomServiceContext);
 
   useEffect(() => {
     if (!roomService) return () => {};
-    const unsubscribe = roomService.subscribe('GAME_UPDATED', (game) => {
+    const unsubscribe = roomService.subscribe('CURRENT_GAME_UPDATED', (game) => {
       console.log('game state', game.getState());
     });
 
     return () => {
       unsubscribe();
     };
-  }, [roomService]);
-
-  useEffect(() => {
-    if (!roomService) return () => {};
-    const currentGame = roomService.getCurrentGame();
-    const myPlayer = roomService.getMyPlayer();
-
-    let count = 0;
-
-    const interval = setInterval(() => {
-      roomService.executeLocalCommand(HelloWorldGameSayHelloCommand.create(currentGame.getId(), myPlayer.getId(), count));
-      count += 1;
-    }, 1000);
-
-    return () => clearInterval(interval);
   }, [roomService]);
 
   const isDisconnected = connectionStatus === 'DISCONNECTED';
@@ -109,8 +98,25 @@ const Page = function Page({ params }: { params: Promise<{ id: string }> }) {
     }
   }, [joinRoom, roomId]);
 
+  const handleCommand = useCallback(
+    (command: CommandModel) => {
+      if (!roomService) return;
+      roomService.executeLocalCommand(command);
+    },
+    [roomService]
+  );
+
+  const handleRestart = useCallback(() => {
+    if (!currentGame) return;
+    setupNewGame(currentGame.getName());
+  }, [currentGame, setupNewGame]);
+
+  const handleStartGame = useCallback(() => {
+    startGame();
+  }, [startGame]);
+
   return (
-    <main className="relative w-full h-screen">
+    <main className="relative w-full h-screen flex flex-col bg-black">
       <MessageModal
         opened={isDisconnected}
         message="You're disconnected to the room."
@@ -125,25 +131,24 @@ const Page = function Page({ params }: { params: Promise<{ id: string }> }) {
           onClose={handleShareRoomModalClose}
         />
       )}
-      <div className="absolute top-2 right-3 z-10 flex items-center gap-2">
-        <Button text="Share" onClick={handleShareClick} />
-      </div>
-      <section
-        className="absolute top-2 left-2 z-10 bg-black p-2 rounded-lg"
-        role="button"
-        tabIndex={0}
-        onClick={handleLogoClick}
-        onKeyDown={handleLogoKeyDown}
-      >
-        <Image src="/assets/images/logos/small-logo.png" alt="small logo" width={28} height={28} />
-      </section>
-      <section ref={mapContainerRef} className="relative w-full h-full overflow-hidden bg-black">
-        <section className="w-full h-full pt-10">
-          {players.map((player) => (
-            <PlayerCard key={player.getId()} player={player} />
-          ))}
+      <header className="flex justify-between items-center p-3">
+        <section className="bg-black p-2 rounded-lg" role="button" tabIndex={0} onClick={handleLogoClick} onKeyDown={handleLogoKeyDown}>
+          <Image src="/assets/images/logos/small-logo.png" alt="small logo" width={28} height={28} />
         </section>
-      </section>
+        <Button text="Share" onClick={handleShareClick} />
+      </header>
+      <div className="relative flex flex-row gap-4 flex-1 overflow-hidden">
+        <section ref={mapContainerRef} className="w-full h-full">
+          {currentGame instanceof HelloWorldGameModel && myPlayerId && hostPlayerId && (
+            <HelloWorldGameRoom myPlayerId={myPlayerId} hostPlayerId={hostPlayerId} players={players} onStartGame={handleStartGame} />
+          )}
+        </section>
+        <section className={twMerge('absolute', 'top-0', currentGame?.hasStarted() ? 'left-0' : 'left-full', 'w-full', 'h-full', 'z-40')}>
+          {currentGame instanceof HelloWorldGameModel && myPlayerId && currentGame.hasStarted() && (
+            <HelloWorldGameBoard myPlayerId={myPlayerId} game={currentGame} onCommand={handleCommand} onRestart={handleRestart} />
+          )}
+        </section>
+      </div>
     </main>
   );
 };

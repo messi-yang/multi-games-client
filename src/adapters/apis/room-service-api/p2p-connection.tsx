@@ -2,6 +2,7 @@ import { P2pEvent } from './p2p-events';
 
 type OnMessage = (p2pEvent: P2pEvent) => void;
 type OnClose = () => void;
+type OnOpen = () => void;
 
 export interface P2pConnection {
   createOffer(): Promise<[RTCSessionDescription | null, RTCIceCandidate[]]>;
@@ -21,6 +22,7 @@ class P2pConnectionImpl implements P2pConnection {
     private iceCandidates: RTCIceCandidate[],
     private dataChannel: RTCDataChannel | null,
     private onMessage: OnMessage,
+    private onOpen: OnOpen,
     private onClose: OnClose
   ) {}
 
@@ -32,7 +34,9 @@ class P2pConnectionImpl implements P2pConnection {
         // console.log('Receive via P2P', p2pEvent.name, p2pEvent);
         this.onMessage(p2pEvent);
       });
-      dataChannel.addEventListener('open', () => {});
+      dataChannel.addEventListener('open', () => {
+        this.onOpen();
+      });
       dataChannel.addEventListener('close', () => {
         this.onClose();
       });
@@ -72,7 +76,9 @@ class P2pConnectionImpl implements P2pConnection {
         // console.log('Receive via P2P', p2pEvent.name, p2pEvent);s
         this.onMessage(p2pEvent);
       });
-      this.dataChannel.addEventListener('open', () => {});
+      this.dataChannel.addEventListener('open', () => {
+        this.onOpen();
+      });
       this.dataChannel.addEventListener('close', () => {
         this.onClose();
       });
@@ -120,6 +126,6 @@ class P2pConnectionImpl implements P2pConnection {
   }
 }
 
-export const createP2pConnection = (options: { onMessage: OnMessage; onClose: OnClose }): P2pConnection => {
-  return new P2pConnectionImpl(new RTCPeerConnection(), [], null, options.onMessage, options.onClose);
+export const createP2pConnection = (options: { onMessage: OnMessage; onClose: OnClose; onOpen: OnOpen }): P2pConnection => {
+  return new P2pConnectionImpl(new RTCPeerConnection(), [], null, options.onMessage, options.onOpen, options.onClose);
 };

@@ -13,6 +13,10 @@ export class DateVo {
     return new DateVo(new Date(timestamp));
   }
 
+  public toIsoString() {
+    return this.date.toISOString();
+  }
+
   public toString() {
     return this.date.toString();
   }
@@ -59,5 +63,13 @@ export class DateVo {
     const timestamp = this.toTimestamp();
 
     return timestamp >= dateA.toTimestamp() && timestamp <= dateB.toTimestamp();
+  }
+
+  public isBefore(otherDate: DateVo) {
+    return this.toTimestamp() < otherDate.toTimestamp();
+  }
+
+  public isAfter(otherDate: DateVo) {
+    return this.toTimestamp() > otherDate.toTimestamp();
   }
 }

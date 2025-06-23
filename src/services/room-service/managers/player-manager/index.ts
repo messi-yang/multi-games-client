@@ -1,16 +1,24 @@
+import { EventHandler, EventHandlerSubscriber } from '@/event-dispatchers/common/event-handler';
 import { PlayerModel } from '@/models/player/player-model';
 
 export class PlayerManager {
   private myPlayerId: string;
 
+  private hostPlayerId: string | null = null;
+
   private playerMap: Record<string, PlayerModel | undefined> = {};
+
+  private hostPlayerIdUpdatedEventHandler = EventHandler.create<string | null>();
+
+  private playersUpdatedEventHandler = EventHandler.create<PlayerModel[]>();
+
+  private myPlayerIdUpdatedEventHandler = EventHandler.create<string>();
 
   constructor(players: PlayerModel[], myPlayerId: string) {
     this.myPlayerId = myPlayerId;
 
-    this.playerMap = {};
     players.forEach((player) => {
-      this.updatePlayerInPlayerMap(player);
+      this.addPlayer(player);
     });
   }
 
@@ -61,6 +69,27 @@ export class PlayerManager {
     delete this.playerMap[playerId];
   }
 
+  private findHostPlayer(): PlayerModel | null {
+    const players = this.getPlayers();
+    if (players.length === 0) return null;
+    return players.sort((a, b) => a.getHostPriority() - b.getHostPriority())[0];
+  }
+
+  private updateHostPlayer() {
+    const oldHostPlayerId = this.hostPlayerId;
+
+    const hostPlayer = this.findHostPlayer();
+    if (!hostPlayer) {
+      this.hostPlayerId = null;
+    } else {
+      this.hostPlayerId = hostPlayer.getId();
+    }
+
+    if (oldHostPlayerId !== this.hostPlayerId) {
+      this.publishHostPlayerIdUpdatedEvent(this.hostPlayerId);
+    }
+  }
+
   /**
    * Add the player
    * @returns isStateChanged
@@ -69,6 +98,8 @@ export class PlayerManager {
     if (this.getPlayer(player.getId())) return false;
 
     this.addPlayerInPlayerMap(player);
+    this.publishPlayersUpdatedEvent();
+    this.updateHostPlayer();
 
     return true;
   }
@@ -82,6 +113,9 @@ export class PlayerManager {
     if (!oldPlayer) return false;
 
     this.updatePlayerInPlayerMap(player);
+    this.publishPlayersUpdatedEvent();
+    this.updateHostPlayer();
+
     return true;
   }
 
@@ -94,7 +128,32 @@ export class PlayerManager {
     if (!currentPlayer) return false;
 
     this.removePlayerFromPlayerMap(playerId);
+    this.publishPlayersUpdatedEvent();
+    this.updateHostPlayer();
 
     return true;
+  }
+
+  public subscribePlayersUpdatedEvent(subscriber: EventHandlerSubscriber<PlayerModel[]>): () => void {
+    subscriber(this.getPlayers());
+    return this.playersUpdatedEventHandler.subscribe(subscriber);
+  }
+
+  private publishPlayersUpdatedEvent() {
+    this.playersUpdatedEventHandler.publish(this.getPlayers());
+  }
+
+  public subscribeHostPlayerIdUpdatedEvent(subscriber: EventHandlerSubscriber<string | null>): () => void {
+    subscriber(this.hostPlayerId);
+    return this.hostPlayerIdUpdatedEventHandler.subscribe(subscriber);
+  }
+
+  private publishHostPlayerIdUpdatedEvent(hostPlayerId: string | null) {
+    this.hostPlayerIdUpdatedEventHandler.publish(hostPlayerId);
+  }
+
+  public subscribeMyPlayerIdUpdatedEvent(subscriber: EventHandlerSubscriber<string>): () => void {
+    subscriber(this.myPlayerId);
+    return this.myPlayerIdUpdatedEventHandler.subscribe(subscriber);
   }
 }

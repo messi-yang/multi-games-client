@@ -11,8 +11,11 @@ import {
   CommandExecutedClientEvent,
   CommandSentClientEvent,
   P2pAnswerSentClientEvent,
+  P2pConnectedClientEvent,
   P2pOfferSentClientEvent,
   PingClientEvent,
+  SetupNewGameRequestedClientEvent,
+  StartGameRequestedClientEvent,
 } from './client-events';
 import { P2pConnection, createP2pConnection } from './p2p-connection';
 import { CommandSentP2pEvent, P2pEvent, P2pEventNameEnum } from './p2p-events';
@@ -21,9 +24,7 @@ import { GameModel } from '@/models/game/game-model';
 import { CommandModel } from '@/models/game/command-model';
 import { CommandDto, parseCommandDto } from '../dtos/command-dto';
 
-function parseRoomJoinedServerEvent(
-  event: RoomJoinedServerEvent
-): [RoomModel, GameModel<object>, CommandModel<object>[], string, PlayerModel[]] {
+function parseRoomJoinedServerEvent(event: RoomJoinedServerEvent): [RoomModel, GameModel, CommandModel[], string, PlayerModel[]] {
   return [
     parseRoomDto(event.room),
     parseGameDto(event.game),
@@ -46,9 +47,11 @@ export class RoomServiceApi {
     roomId: string,
     events: {
       onRoomJoined: (roomService: RoomService) => void;
+      onGameStarted: (game: GameModel) => void;
+      onNewGameSetup: (game: GameModel) => void;
       onPlayerJoined: (player: PlayerModel) => void;
       onPlayerLeft: (playerId: string) => void;
-      onCommandReceived: (command: CommandModel<object>) => void;
+      onCommandReceived: (command: CommandModel) => void;
       onCommandFailed: (commandId: string) => void;
       onErrored: (message: string) => void;
       onDisconnect: () => void;
@@ -77,14 +80,21 @@ export class RoomServiceApi {
     socket.onmessage = async ({ data }: any) => {
       const eventJsonString: string = await data.text();
       const event: ServerEvent = JSON.parse(eventJsonString);
-      console.log('event', event);
 
-      // console.log(event.name, event);
+      console.log('server event: ', event.name, event);
       if (event.name === ServerEventNameEnum.RoomJoined) {
         const [room, game, commands, myPlayerId, players] = parseRoomJoinedServerEvent(event);
         const roomService = RoomService.create(room, game, commands, players, myPlayerId);
         events.onRoomJoined(roomService);
         this.roomService = roomService;
+      } else if (event.name === ServerEventNameEnum.GameStarted) {
+        if (!this.roomService) return;
+
+        events.onGameStarted(parseGameDto(event.game));
+      } else if (event.name === ServerEventNameEnum.NewGameSetup) {
+        if (!this.roomService) return;
+
+        events.onNewGameSetup(parseGameDto(event.game));
       } else if (event.name === ServerEventNameEnum.PlayerJoined) {
         if (!this.roomService) return;
 
@@ -92,6 +102,13 @@ export class RoomServiceApi {
 
         const newP2pConnection = createP2pConnection({
           onMessage: handleP2pMessage,
+          onOpen: () => {
+            const clientEvent: P2pConnectedClientEvent = {
+              name: ClientEventNameEnum.P2pConnected,
+              peerPlayerId: event.player.id,
+            };
+            this.sendMessage(clientEvent);
+          },
           onClose: () => {
             handleP2pClose(event.player.id);
           },
@@ -99,6 +116,7 @@ export class RoomServiceApi {
         const [offer, iceCandidates] = await newP2pConnection.createOffer();
         if (!offer || iceCandidates.length === 0) return;
 
+        console.log('set p2pConnectionMap', event.player.id, newP2pConnection);
         this.p2pConnectionMap.set(event.player.id, newP2pConnection);
 
         const clientEvent: P2pOfferSentClientEvent = {
@@ -110,8 +128,16 @@ export class RoomServiceApi {
 
         this.sendMessage(clientEvent);
       } else if (event.name === ServerEventNameEnum.P2pOfferReceived) {
+        console.log('P2pOfferReceived', event.peerPlayerId);
         const newP2pConnection = createP2pConnection({
           onMessage: handleP2pMessage,
+          onOpen: () => {
+            const clientEvent: P2pConnectedClientEvent = {
+              name: ClientEventNameEnum.P2pConnected,
+              peerPlayerId: event.peerPlayerId,
+            };
+            this.sendMessage(clientEvent);
+          },
           onClose: () => {
             handleP2pClose(event.peerPlayerId);
           },
@@ -119,6 +145,7 @@ export class RoomServiceApi {
         const [answer, iceCandidates] = await newP2pConnection.createAnswer(event.offer, event.iceCandidates);
         if (!answer || iceCandidates.length === 0) return;
 
+        console.log('set p2pConnectionMap', event.peerPlayerId, newP2pConnection);
         this.p2pConnectionMap.set(event.peerPlayerId, newP2pConnection);
 
         const clientEvent: P2pAnswerSentClientEvent = {
@@ -130,6 +157,7 @@ export class RoomServiceApi {
 
         this.sendMessage(clientEvent);
       } else if (event.name === ServerEventNameEnum.P2pAnswerReceived) {
+        console.log('P2pAnswerReceived', event.peerPlayerId);
         const p2pConnection = this.p2pConnectionMap.get(event.peerPlayerId);
         if (!p2pConnection) return;
 
@@ -175,9 +203,11 @@ export class RoomServiceApi {
     roomId: string,
     events: {
       onRoomJoined: (roomService: RoomService) => void;
+      onGameStarted: (game: GameModel) => void;
+      onNewGameSetup: (game: GameModel) => void;
       onPlayerJoined: (player: PlayerModel) => void;
       onPlayerLeft: (playerId: string) => void;
-      onCommandReceived: (command: CommandModel<object>) => void;
+      onCommandReceived: (command: CommandModel) => void;
       onCommandFailed: (commandId: string) => void;
       onErrored: (message: string) => void;
       onDisconnect: () => void;
@@ -199,8 +229,24 @@ export class RoomServiceApi {
     if (this.socket.readyState !== this.socket.OPEN) {
       return;
     }
-    // console.log('Send via Websocket', clientEvent.name, clientEvent);
     this.socket.send(jsonBlob);
+  }
+
+  public startGame(gameId: string, gameState: object) {
+    const clientEvent: StartGameRequestedClientEvent = {
+      name: ClientEventNameEnum.StartGameRequested,
+      gameId,
+      gameState,
+    };
+    this.sendMessage(clientEvent);
+  }
+
+  public setupNewGame(gameName: string) {
+    const clientEvent: SetupNewGameRequestedClientEvent = {
+      name: ClientEventNameEnum.SetupNewGameRequested,
+      gameName,
+    };
+    this.sendMessage(clientEvent);
   }
 
   public ping() {
@@ -210,14 +256,13 @@ export class RoomServiceApi {
     this.sendMessage(clientEvent);
   }
 
-  public sendCommand(command: CommandModel<object>) {
+  public sendCommand(command: CommandModel) {
     if (!this.roomService) return;
 
     const commandDto: CommandDto = command.toJson();
     if (!commandDto) return;
 
-    console.log('sendCommand', commandDto);
-
+    // Send command to server for saving the command
     const clientEvent: CommandExecutedClientEvent = {
       name: ClientEventNameEnum.CommandExecuted,
       command: commandDto,
@@ -228,24 +273,21 @@ export class RoomServiceApi {
       const otherPlayerId = otherPlayer.getId();
       const p2pConnection = this.p2pConnectionMap.get(otherPlayerId);
 
-      const commandSentClientEvent: CommandSentClientEvent = {
-        name: ClientEventNameEnum.CommandSent,
-        peerPlayerId: otherPlayerId,
-        command: commandDto,
-      };
+      if (p2pConnection) {
+        const p2pEvent: CommandSentP2pEvent = {
+          name: P2pEventNameEnum.CommandSent,
+          command: commandDto,
+        };
 
-      if (!p2pConnection) {
-        this.sendMessage(commandSentClientEvent);
-        return;
-      }
-
-      const p2pEvent: CommandSentP2pEvent = {
-        name: P2pEventNameEnum.CommandSent,
-        command: commandDto,
-      };
-      const succeeded = p2pConnection.sendMessage(p2pEvent);
-      if (!succeeded) {
-        this.sendMessage(commandSentClientEvent);
+        const commandSentClientEvent: CommandSentClientEvent = {
+          name: ClientEventNameEnum.CommandSent,
+          peerPlayerId: otherPlayerId,
+          command: commandDto,
+        };
+        const succeeded = p2pConnection.sendMessage(p2pEvent);
+        if (!succeeded) {
+          this.sendMessage(commandSentClientEvent);
+        }
       }
     });
   }

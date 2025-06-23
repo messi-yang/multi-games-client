@@ -1,7 +1,7 @@
 import { DateVo } from '../global/date-vo';
 import { CommandJson } from './command-json';
 
-export abstract class CommandModel<GameState extends object> {
+export abstract class CommandModel<GameState extends object = object> {
   constructor(
     protected id: string,
     protected gameId: string,

@@ -17,25 +17,19 @@ export class RoomService {
 
   private commandManager: CommandManager;
 
-  private constructor(
-    room: RoomModel,
-    game: GameModel<object>,
-    commands: CommandModel<object>[],
-    players: PlayerModel[],
-    myPlayerId: string
-  ) {
+  private constructor(room: RoomModel, game: GameModel, commands: CommandModel[], players: PlayerModel[], myPlayerId: string) {
     this.roomManager = RoomManager.create(room);
 
     this.gameManager = GameManager.create(game);
 
     this.playerManager = PlayerManager.create(players, myPlayerId);
 
-    this.commandManager = CommandManager.create(this.roomManager, this.gameManager, this.playerManager);
+    this.commandManager = CommandManager.create(this.gameManager);
 
     commands.forEach((command) => this.commandManager.executeRemoteCommand(command));
   }
 
-  static create(room: RoomModel, game: GameModel<object>, commands: CommandModel<object>[], players: PlayerModel[], myPlayerId: string) {
+  static create(room: RoomModel, game: GameModel, commands: CommandModel[], players: PlayerModel[], myPlayerId: string) {
     return new RoomService(room, game, commands, players, myPlayerId);
   }
 
@@ -52,11 +46,11 @@ export class RoomService {
     this.commandManager.replayCommands(duration, speed);
   }
 
-  public executeRemoteCommand(command: CommandModel<object>) {
+  public executeRemoteCommand(command: CommandModel) {
     this.commandManager.executeRemoteCommand(command);
   }
 
-  public executeLocalCommand(command: CommandModel<object>) {
+  public executeLocalCommand(command: CommandModel) {
     this.commandManager.executeLocalCommand(command);
   }
 
@@ -64,8 +58,21 @@ export class RoomService {
     return this.roomManager.getRoom();
   }
 
-  public getCurrentGame(): GameModel<object> {
+  public getCurrentGame(): GameModel {
     return this.gameManager.getCurrentGame();
+  }
+
+  public startGame(game: GameModel) {
+    this.gameManager.updateCurrentGame(game);
+    this.commandManager.initialize(game);
+  }
+
+  public updateCurrentGame(game: GameModel) {
+    this.gameManager.updateCurrentGame(game);
+  }
+
+  public setupNewGame(game: GameModel) {
+    this.gameManager.setupNewGame(game);
   }
 
   public isMyPlayer(player: PlayerModel): boolean {
@@ -92,20 +99,39 @@ export class RoomService {
     return this.playerManager.getOtherPlayers();
   }
 
-  subscribe(eventName: 'LOCAL_COMMAND_EXECUTED', subscriber: EventHandlerSubscriber<CommandModel<object>>): () => void;
-  subscribe(eventName: 'GAME_UPDATED', subscriber: EventHandlerSubscriber<GameModel<object>>): () => void;
+  subscribe(eventName: 'LOCAL_COMMAND_EXECUTED', subscriber: EventHandlerSubscriber<CommandModel>): () => void;
+  subscribe(eventName: 'CURRENT_GAME_UPDATED', subscriber: EventHandlerSubscriber<GameModel>): () => void;
+  subscribe(eventName: 'NEW_GAME_SETUP', subscriber: EventHandlerSubscriber<GameModel>): () => void;
+  subscribe(eventName: 'PLAYERS_UPDATED', subscriber: EventHandlerSubscriber<PlayerModel[]>): () => void;
+  subscribe(eventName: 'HOST_PLAYER_ID_UPDATED', subscriber: EventHandlerSubscriber<string | null>): () => void;
+  subscribe(eventName: 'MY_PLAYER_ID_UPDATED', subscriber: EventHandlerSubscriber<string>): () => void;
   public subscribe(
-    eventName: 'LOCAL_COMMAND_EXECUTED' | 'GAME_UPDATED',
+    eventName:
+      | 'LOCAL_COMMAND_EXECUTED'
+      | 'CURRENT_GAME_UPDATED'
+      | 'NEW_GAME_SETUP'
+      | 'PLAYERS_UPDATED'
+      | 'HOST_PLAYER_ID_UPDATED'
+      | 'MY_PLAYER_ID_UPDATED',
     subscriber:
-      | EventHandlerSubscriber<CommandModel<object>>
-      | EventHandlerSubscriber<GameModel<object>>
-      | EventHandlerSubscriber<void>
-      | EventHandlerSubscriber<void>
+      | EventHandlerSubscriber<CommandModel>
+      | EventHandlerSubscriber<GameModel>
+      | EventHandlerSubscriber<PlayerModel[]>
+      | EventHandlerSubscriber<string | null>
+      | EventHandlerSubscriber<string>
   ): () => void {
     if (eventName === 'LOCAL_COMMAND_EXECUTED') {
-      return this.commandManager.subscribeLocalCommandExecutedEvent(subscriber as EventHandlerSubscriber<CommandModel<object>>);
-    } else if (eventName === 'GAME_UPDATED') {
-      return this.gameManager.subscribeGameUpdatedEvent(subscriber as EventHandlerSubscriber<GameModel<object>>);
+      return this.commandManager.subscribeLocalCommandExecutedEvent(subscriber as EventHandlerSubscriber<CommandModel>);
+    } else if (eventName === 'CURRENT_GAME_UPDATED') {
+      return this.gameManager.subscribeCurrentGameUpdatedEvent(subscriber as EventHandlerSubscriber<GameModel>);
+    } else if (eventName === 'NEW_GAME_SETUP') {
+      return this.gameManager.subscribeNewGameSetupEvent(subscriber as EventHandlerSubscriber<GameModel>);
+    } else if (eventName === 'PLAYERS_UPDATED') {
+      return this.playerManager.subscribePlayersUpdatedEvent(subscriber as EventHandlerSubscriber<PlayerModel[]>);
+    } else if (eventName === 'HOST_PLAYER_ID_UPDATED') {
+      return this.playerManager.subscribeHostPlayerIdUpdatedEvent(subscriber as EventHandlerSubscriber<string | null>);
+    } else if (eventName === 'MY_PLAYER_ID_UPDATED') {
+      return this.playerManager.subscribeMyPlayerIdUpdatedEvent(subscriber as EventHandlerSubscriber<string>);
     } else {
       return () => {};
     }

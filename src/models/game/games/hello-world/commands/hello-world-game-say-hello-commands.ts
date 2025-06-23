@@ -25,7 +25,10 @@ export class HelloWorldGameSayHelloCommand extends CommandModel<HelloWorldGameSt
   }
 
   public execute(gameState: HelloWorldGameStateJson): HelloWorldGameStateJson {
-    gameState[this.playerId] = [...(gameState[this.playerId] ?? []), this.count];
+    const character = gameState.characters.find((c) => c.id === this.playerId);
+    if (character && this.count === character.count + 1) {
+      character.count = this.count;
+    }
 
     return gameState;
   }

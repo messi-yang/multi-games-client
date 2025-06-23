@@ -1,1 +1,3 @@
-export type HelloWorldGameStateJson = Record<string, number[] | undefined>;
+export type HelloWorldGameStateJson = {
+  characters: { id: string; count: number; name: string }[];
+};

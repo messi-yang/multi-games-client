@@ -5,6 +5,8 @@ import { CommandDto } from '../dtos/command-dto';
 
 export enum ServerEventNameEnum {
   RoomJoined = 'ROOM_JOINED',
+  GameStarted = 'GAME_STARTED',
+  NewGameSetup = 'NEW_GAME_SETUP',
   PlayerJoined = 'PLAYER_JOINED',
   PlayerLeft = 'PLAYER_LEFT',
   CommandReceived = 'COMMAND_RECEIVED',
@@ -21,6 +23,16 @@ export type RoomJoinedServerEvent = {
   room: RoomDto;
   myPlayerId: string;
   players: PlayerDto[];
+};
+
+export type GameStartedServerEvent = {
+  name: ServerEventNameEnum.GameStarted;
+  game: GameDto;
+};
+
+export type NewGameSetupServerEvent = {
+  name: ServerEventNameEnum.NewGameSetup;
+  game: GameDto;
 };
 
 export type PlayerJoinedServerEvent = {
@@ -64,6 +76,8 @@ export type ErroredServerEvent = {
 
 export type ServerEvent =
   | RoomJoinedServerEvent
+  | GameStartedServerEvent
+  | NewGameSetupServerEvent
   | PlayerJoinedServerEvent
   | PlayerLeftServerEvent
   | CommandReceivedServerEvent

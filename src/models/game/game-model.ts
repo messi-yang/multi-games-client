@@ -1,7 +1,8 @@
 import { DateVo } from '../global/date-vo';
+import { PlayerModel } from '../player/player-model';
 import { GameNameEnum } from './game-name-enum';
 
-export abstract class GameModel<State extends object> {
+export abstract class GameModel<State extends object = object> {
   constructor(
     protected id: string,
     protected roomId: string,
@@ -26,10 +27,6 @@ export abstract class GameModel<State extends object> {
     return this.name;
   }
 
-  public getStarted(): boolean {
-    return this.started;
-  }
-
   public getState(): State {
     return this.state;
   }
@@ -44,6 +41,12 @@ export abstract class GameModel<State extends object> {
 
   public getUpdatedAt(): DateVo {
     return this.updatedAt;
+  }
+
+  abstract generateInitialState(players: PlayerModel[]): State;
+
+  public hasStarted(): boolean {
+    return this.started;
   }
 
   abstract isEnded(): boolean;

@@ -1,60 +1,70 @@
 import { sleep } from '@/utils/general';
 import { EventHandler, EventHandlerSubscriber } from '../../../../event-dispatchers/common/event-handler';
 import { DateVo } from '@/models/global/date-vo';
-import { PlayerManager } from '../player-manager';
-import { RoomManager } from '../room-manager';
 import { GameManager } from '../game-manager';
 import { CommandModel } from '@/models/game/command-model';
+import { GameModel } from '@/models/game/game-model';
 
 export class CommandManager {
   constructor(
-    private roomManager: RoomManager,
     private gameManager: GameManager,
-    private playerManager: PlayerManager,
-    private executedCommands: CommandModel<object>[] = [],
+    private executedCommands: CommandModel[] = [],
     private historyGameState: object[] = [],
-    private executedCommandMap: Record<string, CommandModel<object> | undefined> = {},
+    private executedCommandMap: Record<string, CommandModel | undefined> = {},
     private failedCommandMap: Record<string, true | undefined> = {},
     private isReplayingCommands = false,
-    private bufferedCommandsFromReplaying: CommandModel<object>[] = [],
-    private commandExecutedEventHandler: EventHandler<CommandModel<object>> = EventHandler.create<CommandModel<object>>()
-  ) {}
-
-  static create(roomManager: RoomManager, gameManager: GameManager, playerManager: PlayerManager) {
-    return new CommandManager(roomManager, gameManager, playerManager);
+    private bufferedCommandsFromReplaying: CommandModel[] = [],
+    private commandExecutedEventHandler: EventHandler<CommandModel> = EventHandler.create<CommandModel>()
+  ) {
+    this.initialize(gameManager.getCurrentGame());
   }
 
-  private popHistoryGameState(): object | null {
-    return this.historyGameState.pop() ?? null;
+  static create(gameManager: GameManager) {
+    return new CommandManager(gameManager);
   }
 
-  private addHistoryGameState(gameState: object) {
-    this.historyGameState.push(gameState);
+  public initialize(currentGame: GameModel) {
+    this.executedCommands = [];
+    this.historyGameState = [currentGame.getState()];
+    this.executedCommandMap = {};
+    this.failedCommandMap = {};
+    this.isReplayingCommands = false;
   }
 
-  private getExecutedCommand(id: string): CommandModel<object> | null {
+  private getExecutedCommand(id: string): CommandModel | null {
     return this.executedCommandMap[id] ?? null;
   }
 
-  private addExecutedCommand(command: CommandModel<object>) {
+  private addExecutedCommand(command: CommandModel) {
+    const currentGameState = this.gameManager.getCurrentGame().getState();
+    const newGameState = command.execute(currentGameState);
+
     this.executedCommands.push(command);
     this.executedCommandMap[command.getId()] = command;
+    this.historyGameState.push(newGameState);
+    this.gameManager.updateCurrentGameState(newGameState);
   }
 
-  private doesFailedCommandExist(id: string): boolean {
+  private popExecutedCommand(): CommandModel | null {
+    const executedCommand = this.executedCommands.pop();
+    if (!executedCommand) return null;
+    delete this.executedCommandMap[executedCommand.getId()];
+
+    this.historyGameState.pop();
+
+    const lastLastGameState = this.historyGameState[this.historyGameState.length - 1];
+    console.log('lastLastGameState', lastLastGameState);
+    this.gameManager.updateCurrentGameState(lastLastGameState);
+
+    return executedCommand;
+  }
+
+  private getFailedCommand(id: string): boolean {
     return this.failedCommandMap[id] ?? false;
   }
 
   private addFailedCommandId(commandId: string) {
     this.failedCommandMap[commandId] = true;
-  }
-
-  private popExecutedCommand(): CommandModel<object> | null {
-    const executedCommand = this.executedCommands.pop();
-    if (!executedCommand) return null;
-
-    delete this.executedCommandMap[executedCommand.getId()];
-    return executedCommand;
   }
 
   public getIsReplayingCommands() {
@@ -67,19 +77,14 @@ export class CommandManager {
     const executedCommand = this.getExecutedCommand(commandId);
     if (!executedCommand) return;
 
-    const commandsToReExecute: CommandModel<object>[] = [];
+    const commandsToReExecute: CommandModel[] = [];
 
     while (true) {
       const lastExecutedCommand = this.popExecutedCommand();
       if (!lastExecutedCommand) break;
 
-      const lastGameState = this.popHistoryGameState();
-      if (!lastGameState) break;
-
       const lastExecutedCommandId = lastExecutedCommand.getId();
       const isLastExecutedCommandFailedCommand = lastExecutedCommandId === commandId;
-
-      this.gameManager.updateCurrentGameState(lastGameState);
 
       if (isLastExecutedCommandFailedCommand) {
         this.addFailedCommandId(lastExecutedCommandId);
@@ -106,17 +111,13 @@ export class CommandManager {
     const now = DateVo.now();
     const milisecondsAgo = DateVo.fromTimestamp(now.toTimestamp() - duration);
 
-    const commandsToReExecute: CommandModel<object>[] = [];
+    const commandsToReExecute: CommandModel[] = [];
     let executedCommand = this.popExecutedCommand();
     let lastCommandCreatedTimestamp = now.toTimestamp();
     while (executedCommand && executedCommand.isExecutedBetween(milisecondsAgo, now)) {
-      const lastGameState = this.popHistoryGameState();
-      if (!lastGameState) break;
-
       await sleep((lastCommandCreatedTimestamp - executedCommand.getExecutedAt().toTimestamp()) / speed);
       lastCommandCreatedTimestamp = executedCommand.getExecutedAt().toTimestamp();
 
-      this.gameManager.updateCurrentGameState(lastGameState);
       commandsToReExecute.push(executedCommand);
 
       executedCommand = this.popExecutedCommand();
@@ -137,7 +138,7 @@ export class CommandManager {
     this.isReplayingCommands = false;
   }
 
-  public executeRemoteCommand(command: CommandModel<object>) {
+  public executeRemoteCommand(command: CommandModel) {
     if (this.isReplayingCommands) {
       this.bufferedCommandsFromReplaying.push(command);
       return;
@@ -145,7 +146,7 @@ export class CommandManager {
     this.executeCommand(command);
   }
 
-  public executeLocalCommand(command: CommandModel<object>) {
+  public executeLocalCommand(command: CommandModel) {
     if (this.isReplayingCommands) return;
     if (this.gameManager.getCurrentGame().isEnded()) return;
 
@@ -154,7 +155,7 @@ export class CommandManager {
     }
   }
 
-  private executeCommand(command: CommandModel<object>): boolean {
+  private executeCommand(command: CommandModel): boolean {
     const commandId = command.getId();
 
     // If it's already executed, do nothing
@@ -162,27 +163,51 @@ export class CommandManager {
     if (duplicatedCommand) return false;
 
     // If it failed before, do nothing
-    const hasCommandAlreadyFailed = this.doesFailedCommandExist(commandId);
-    if (hasCommandAlreadyFailed) return false;
+    const failedCommand = this.getFailedCommand(commandId);
+    if (failedCommand) return false;
 
     const currentGame = this.gameManager.getCurrentGame();
     if (currentGame.getId() !== command.getGameId()) return false;
 
-    const clonedGameState = JSON.parse(JSON.stringify(currentGame.getState()));
-    const newGameState = command.execute(clonedGameState);
-    this.gameManager.updateCurrentGameState(newGameState);
+    console.log('hey original commands', [...this.executedCommands]);
 
-    this.addExecutedCommand(command);
-    this.addHistoryGameState(newGameState);
+    console.log('hey command', command);
+
+    // If the command is executed before the poped command, pop the command, reset the state and execute the command again, do this until the command is executed after the poped command
+    const commandsToExecute: CommandModel[] = [];
+    let lastExecutedCommand = this.popExecutedCommand();
+    while (lastExecutedCommand) {
+      if (lastExecutedCommand && lastExecutedCommand.getExecutedAt().isBefore(command.getExecutedAt())) {
+        this.addExecutedCommand(lastExecutedCommand);
+        break;
+      } else {
+        commandsToExecute.push(lastExecutedCommand);
+        lastExecutedCommand = this.popExecutedCommand();
+      }
+    }
+
+    // insert command into the second last position
+    commandsToExecute.push(command);
+    console.log('hey commandsToExecute', commandsToExecute);
+
+    for (let i = commandsToExecute.length - 1; i >= 0; i -= 1) {
+      const commandToExecute = commandsToExecute[i];
+      // console.log('hey oldGameState', clonedGameState);
+      // console.log('hey commandToExecute', commandToExecute);
+      // console.log('heynewGameState', newGameState);
+      this.addExecutedCommand(commandToExecute);
+    }
+
+    console.log('hey updated commands', [...this.executedCommands]);
 
     return true;
   }
 
-  public subscribeLocalCommandExecutedEvent(subscriber: EventHandlerSubscriber<CommandModel<object>>): () => void {
+  public subscribeLocalCommandExecutedEvent(subscriber: EventHandlerSubscriber<CommandModel>): () => void {
     return this.commandExecutedEventHandler.subscribe(subscriber);
   }
 
-  private publishLocalCommandExecutedEvent(command: CommandModel<object>) {
+  private publishLocalCommandExecutedEvent(command: CommandModel) {
     this.commandExecutedEventHandler.publish(command);
   }
 }

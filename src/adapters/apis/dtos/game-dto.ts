@@ -13,7 +13,7 @@ type GameDto = {
 };
 
 function parseGameDto(dto: GameDto): HelloWorldGameModel {
-  if (dto.name === GameNameEnum.HelloWorld) {
+  if (dto.name === GameNameEnum.Default) {
     return HelloWorldGameModel.create(
       dto.id,
       dto.roomId,

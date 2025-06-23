@@ -2,14 +2,28 @@ import { CommandDto } from '../dtos/command-dto';
 
 export enum ClientEventNameEnum {
   Ping = 'PING',
+  StartGameRequested = 'START_GAME_REQUESTED',
+  SetupNewGameRequested = 'SETUP_NEW_GAME_REQUESTED',
   CommandExecuted = 'COMMAND_EXECUTED',
   CommandSent = 'COMMAND_SENT',
   P2pOfferSent = 'P2P_OFFER_SENT',
   P2pAnswerSent = 'P2P_ANSWER_SENT',
+  P2pConnected = 'P2P_CONNECTED',
 }
 
 export type PingClientEvent = {
   name: ClientEventNameEnum.Ping;
+};
+
+export type StartGameRequestedClientEvent = {
+  name: ClientEventNameEnum.StartGameRequested;
+  gameId: string;
+  gameState: object;
+};
+
+export type SetupNewGameRequestedClientEvent = {
+  name: ClientEventNameEnum.SetupNewGameRequested;
+  gameName: string;
 };
 
 export type CommandExecutedClientEvent = {
@@ -37,9 +51,17 @@ export type P2pAnswerSentClientEvent = {
   answer: object;
 };
 
+export type P2pConnectedClientEvent = {
+  name: ClientEventNameEnum.P2pConnected;
+  peerPlayerId: string;
+};
+
 export type ClientEvent =
   | PingClientEvent
+  | StartGameRequestedClientEvent
+  | SetupNewGameRequestedClientEvent
   | CommandExecutedClientEvent
   | CommandSentClientEvent
   | P2pOfferSentClientEvent
-  | P2pAnswerSentClientEvent;
+  | P2pAnswerSentClientEvent
+  | P2pConnectedClientEvent;

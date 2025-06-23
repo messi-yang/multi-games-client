@@ -2,19 +2,21 @@ import { EventHandler, EventHandlerSubscriber } from '@/event-dispatchers/common
 import { GameModel } from '@/models/game/game-model';
 
 export class GameManager {
-  private currentGame: GameModel<object>;
+  private currentGame: GameModel;
 
-  private gameUpdatedEventHandler = EventHandler.create<GameModel<object>>();
+  private currentGameUpdatedEventHandler = EventHandler.create<GameModel>();
 
-  private constructor(currentGame: GameModel<object>) {
+  private newGameSetupEventHandler = EventHandler.create<GameModel>();
+
+  private constructor(currentGame: GameModel) {
     this.currentGame = currentGame;
   }
 
-  static create(game: GameModel<object>) {
+  static create(game: GameModel) {
     return new GameManager(game);
   }
 
-  public getCurrentGame(): GameModel<object> {
+  public getCurrentGame(): GameModel {
     return this.currentGame;
   }
 
@@ -22,19 +24,38 @@ export class GameManager {
     const clonedCurrentGame = this.currentGame.clone();
     clonedCurrentGame.setState(gameState);
     this.updateCurrentGame(clonedCurrentGame);
-    this.publishGameUpdatedEvent(clonedCurrentGame);
+    this.publishCurrentGameUpdatedEvent(clonedCurrentGame);
   }
 
-  public updateCurrentGame(game: GameModel<object>) {
+  public updateCurrentGame(game: GameModel) {
+    if (this.currentGame.getId() !== game.getId()) {
+      throw new Error('Game ID mismatch');
+    }
+
     this.currentGame = game;
-    this.publishGameUpdatedEvent(game);
+    this.publishCurrentGameUpdatedEvent(game);
   }
 
-  private publishGameUpdatedEvent(game: GameModel<object>) {
-    this.gameUpdatedEventHandler.publish(game);
+  public setupNewGame(game: GameModel) {
+    this.currentGame = game;
+    this.publishNewGameSetupEvent(game);
   }
 
-  public subscribeGameUpdatedEvent(subscriber: EventHandlerSubscriber<GameModel<object>>) {
-    return this.gameUpdatedEventHandler.subscribe(subscriber);
+  private publishCurrentGameUpdatedEvent(game: GameModel) {
+    this.currentGameUpdatedEventHandler.publish(game);
+  }
+
+  public subscribeCurrentGameUpdatedEvent(subscriber: EventHandlerSubscriber<GameModel>) {
+    subscriber(this.getCurrentGame());
+    return this.currentGameUpdatedEventHandler.subscribe(subscriber);
+  }
+
+  private publishNewGameSetupEvent(game: GameModel) {
+    this.newGameSetupEventHandler.publish(game);
+  }
+
+  public subscribeNewGameSetupEvent(subscriber: EventHandlerSubscriber<GameModel>) {
+    subscriber(this.getCurrentGame());
+    return this.newGameSetupEventHandler.subscribe(subscriber);
   }
 }
