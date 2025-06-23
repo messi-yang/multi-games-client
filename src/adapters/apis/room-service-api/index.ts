@@ -116,7 +116,6 @@ export class RoomServiceApi {
         const [offer, iceCandidates] = await newP2pConnection.createOffer();
         if (!offer || iceCandidates.length === 0) return;
 
-        console.log('set p2pConnectionMap', event.player.id, newP2pConnection);
         this.p2pConnectionMap.set(event.player.id, newP2pConnection);
 
         const clientEvent: P2pOfferSentClientEvent = {
@@ -128,7 +127,6 @@ export class RoomServiceApi {
 
         this.sendMessage(clientEvent);
       } else if (event.name === ServerEventNameEnum.P2pOfferReceived) {
-        console.log('P2pOfferReceived', event.peerPlayerId);
         const newP2pConnection = createP2pConnection({
           onMessage: handleP2pMessage,
           onOpen: () => {
@@ -145,7 +143,6 @@ export class RoomServiceApi {
         const [answer, iceCandidates] = await newP2pConnection.createAnswer(event.offer, event.iceCandidates);
         if (!answer || iceCandidates.length === 0) return;
 
-        console.log('set p2pConnectionMap', event.peerPlayerId, newP2pConnection);
         this.p2pConnectionMap.set(event.peerPlayerId, newP2pConnection);
 
         const clientEvent: P2pAnswerSentClientEvent = {
@@ -157,7 +154,6 @@ export class RoomServiceApi {
 
         this.sendMessage(clientEvent);
       } else if (event.name === ServerEventNameEnum.P2pAnswerReceived) {
-        console.log('P2pAnswerReceived', event.peerPlayerId);
         const p2pConnection = this.p2pConnectionMap.get(event.peerPlayerId);
         if (!p2pConnection) return;
 

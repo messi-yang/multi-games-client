@@ -42,17 +42,6 @@ const Page = function Page({ params }: { params: Promise<{ id: string }> }) {
   const { roomService, connectionStatus, players, myPlayerId, hostPlayerId, joinRoom, leaveRoom, currentGame, startGame, setupNewGame } =
     useContext(RoomServiceContext);
 
-  useEffect(() => {
-    if (!roomService) return () => {};
-    const unsubscribe = roomService.subscribe('CURRENT_GAME_UPDATED', (game) => {
-      console.log('game state', game.getState());
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, [roomService]);
-
   const isDisconnected = connectionStatus === 'DISCONNECTED';
   useEffect(() => {
     if (!isDisconnected) return () => {};
