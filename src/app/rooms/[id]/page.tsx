@@ -13,7 +13,7 @@ import { RoomMembersContext } from '@/contexts/room-members-context';
 import { Button } from '@/components/buttons/button';
 import { ShareRoomModal } from '@/components/modals/share-room-modal';
 import { HelloWorldGameBoard } from '@/components/games/hello-world-game/board';
-import { HelloWorldGameModel } from '@/models/game/games/hello-world/hello-world-game-model';
+import { HelloWorldGameModel } from '@/models/game/games/hello-world/game-model';
 import { CommandModel } from '@/models/game/command-model';
 import { HelloWorldGameRoom } from '@/components/games/hello-world-game/room';
 

@@ -1,14 +1,33 @@
 import { DateVo } from '../global/date-vo';
 import { CommandJson } from './command-json';
+import { GameStateVo } from './game-state-vo';
 
-export abstract class CommandModel<GameState extends object = object> {
-  constructor(
-    protected id: string,
-    protected gameId: string,
-    protected playerId: string,
-    protected name: string,
-    protected executedAt: DateVo
-  ) {}
+type Props = {
+  id: string;
+  gameId: string;
+  playerId: string;
+  name: string;
+  executedAt: DateVo;
+};
+
+export abstract class CommandModel<GameState extends GameStateVo = GameStateVo> {
+  protected id: string;
+
+  protected gameId: string;
+
+  protected playerId: string;
+
+  protected name: string;
+
+  protected executedAt: DateVo;
+
+  constructor(props: Props) {
+    this.id = props.id;
+    this.gameId = props.gameId;
+    this.playerId = props.playerId;
+    this.name = props.name;
+    this.executedAt = props.executedAt;
+  }
 
   public getId(): string {
     return this.id;

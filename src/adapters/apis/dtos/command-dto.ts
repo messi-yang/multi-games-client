@@ -1,5 +1,6 @@
 import { CommandModel } from '@/models/game/command-model';
-import { parseHelloWorldGameCommandJson } from '@/models/game/games/hello-world/commands/utils';
+import { CommandNamePrefixEnum } from '@/models/game/command-name-prefix-enum';
+import { parseHelloWorldGameCommandJson } from '@/models/game/games/hello-world/commands/command-json-parser';
 
 export type CommandDto = {
   id: string;
@@ -10,8 +11,8 @@ export type CommandDto = {
   payload: object;
 };
 
-export function parseCommandDto(dto: CommandDto): CommandModel<object> {
-  if (dto.name === 'say_hello') {
+export function parseCommandDto(dto: CommandDto): CommandModel {
+  if (dto.name.startsWith(CommandNamePrefixEnum.HelloWorld)) {
     return parseHelloWorldGameCommandJson(dto);
   }
 

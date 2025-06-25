@@ -1,26 +1,61 @@
 import { generateUuidV4 } from '@/utils/uuid';
 import { DateVo } from '../global/date-vo';
 
-export class PlayerModel {
-  constructor(
-    protected id: string,
-    protected userId: string,
-    protected name: string,
-    protected hostPriority: number,
-    protected createdAt: string,
-    protected updatedAt: string
-  ) {}
+type Props = {
+  id: string;
+  userId: string;
+  name: string;
+  hostPriority: number;
+  createdAt: DateVo;
+  updatedAt: DateVo;
+};
 
-  static create(id: string, userId: string, name: string, hostPriority: number, createdAt: string, updatedAt: string): PlayerModel {
-    return new PlayerModel(id, userId, name, hostPriority ?? 0, createdAt, updatedAt);
+export class PlayerModel {
+  private id: string;
+
+  private userId: string;
+
+  private name: string;
+
+  private hostPriority: number;
+
+  private createdAt: DateVo;
+
+  private updatedAt: DateVo;
+
+  private constructor(props: Props) {
+    this.id = props.id;
+    this.userId = props.userId;
+    this.name = props.name;
+    this.hostPriority = props.hostPriority;
+    this.createdAt = props.createdAt;
+    this.updatedAt = props.updatedAt;
+  }
+
+  static create(props: Props): PlayerModel {
+    return new PlayerModel(props);
   }
 
   static createMock(): PlayerModel {
-    return PlayerModel.create(generateUuidV4(), generateUuidV4(), 'Test Player', 0, DateVo.now().toIsoString(), DateVo.now().toIsoString());
+    return PlayerModel.create({
+      id: generateUuidV4(),
+      userId: generateUuidV4(),
+      name: 'Test Player',
+      hostPriority: 0,
+      createdAt: DateVo.now(),
+      updatedAt: DateVo.now(),
+    });
   }
 
   public clone(): PlayerModel {
-    return new PlayerModel(this.id, this.userId, this.name, this.hostPriority, this.createdAt, this.updatedAt);
+    return new PlayerModel({
+      id: this.id,
+      userId: this.userId,
+      name: this.name,
+      hostPriority: this.hostPriority,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+    });
   }
 
   public getId(): string {

@@ -9,7 +9,12 @@ type RoomDto = {
 };
 
 function parseRoomDto(dto: RoomDto): RoomModel {
-  return RoomModel.create(dto.id, dto.name, DateVo.parseString(dto.createdAt), DateVo.parseString(dto.updatedAt));
+  return RoomModel.create({
+    id: dto.id,
+    name: dto.name,
+    createdAt: DateVo.parseString(dto.createdAt),
+    updatedAt: DateVo.parseString(dto.updatedAt),
+  });
 }
 
 export type { RoomDto };

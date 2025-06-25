@@ -1,13 +1,33 @@
 import { DateVo } from '../global/date-vo';
 import { generateUuidV4 } from '@/utils/uuid';
 
+type Props = {
+  id: string;
+  name: string;
+  createdAt: DateVo;
+  updatedAt: DateVo;
+};
+
 export class RoomModel {
-  constructor(private id: string, private name: string, private createdAt: DateVo, private updatedAt: DateVo) {}
+  private id: string;
 
-  static create = (id: string, name: string, createdAt: DateVo, updatedAt: DateVo): RoomModel =>
-    new RoomModel(id, name, createdAt, updatedAt);
+  private name: string;
 
-  static createMock = (): RoomModel => new RoomModel(generateUuidV4(), 'Hello Room', DateVo.now(), DateVo.now());
+  private createdAt: DateVo;
+
+  private updatedAt: DateVo;
+
+  constructor(props: Props) {
+    this.id = props.id;
+    this.name = props.name;
+    this.createdAt = props.createdAt;
+    this.updatedAt = props.updatedAt;
+  }
+
+  static create = (props: Props): RoomModel => new RoomModel(props);
+
+  static createMock = (): RoomModel =>
+    new RoomModel({ id: generateUuidV4(), name: 'Hello Room', createdAt: DateVo.now(), updatedAt: DateVo.now() });
 
   public getId(): string {
     return this.id;

@@ -1,5 +1,6 @@
 import { GameNameEnum } from '@/models/game/game-name-enum';
-import { HelloWorldGameModel } from '@/models/game/games/hello-world/hello-world-game-model';
+import { HelloWorldGameModel } from '@/models/game/games/hello-world/game-model';
+import { HelloWorldGameStateVo } from '@/models/game/games/hello-world/game-state-vo';
 import { DateVo } from '@/models/global/date-vo';
 
 type GameDto = {
@@ -14,15 +15,15 @@ type GameDto = {
 
 function parseGameDto(dto: GameDto): HelloWorldGameModel {
   if (dto.name === GameNameEnum.Default) {
-    return HelloWorldGameModel.create(
-      dto.id,
-      dto.roomId,
-      dto.name,
-      dto.started,
-      dto.state,
-      DateVo.parseString(dto.createdAt),
-      DateVo.parseString(dto.updatedAt)
-    );
+    return HelloWorldGameModel.create({
+      id: dto.id,
+      roomId: dto.roomId,
+      name: dto.name,
+      started: dto.started,
+      state: HelloWorldGameStateVo.fromJson(dto.state),
+      createdAt: DateVo.parseString(dto.createdAt),
+      updatedAt: DateVo.parseString(dto.updatedAt),
+    });
   }
 
   throw new Error(`Unknown game name: ${dto.name}`);

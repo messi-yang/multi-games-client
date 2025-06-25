@@ -1,29 +1,31 @@
 import { useCallback, useMemo } from 'react';
 import classnames from 'classnames';
 import { Text } from '@/components/texts/text';
-import { HelloWorldGameModel } from '@/models/game/games/hello-world/hello-world-game-model';
+import { HelloWorldGameModel } from '@/models/game/games/hello-world/game-model';
 import { CommandModel } from '@/models/game/command-model';
-import { HelloWorldGameStateJson } from '@/models/game/games/hello-world/hello-world-game-state-json';
-import { HelloWorldGameSayHelloCommand } from '@/models/game/games/hello-world/commands/hello-world-game-say-hello-commands';
+import { HelloWorldGameSayHelloCommand } from '@/models/game/games/hello-world/commands/say-hello-commands';
 import { Button } from '@/components/buttons/button';
+import { HelloWorldGameStateVo } from '@/models/game/games/hello-world/game-state-vo';
 
 type Props = {
   myPlayerId: string;
   game: HelloWorldGameModel;
-  onCommand: (command: CommandModel<HelloWorldGameStateJson>) => void;
+  onCommand: (command: CommandModel<HelloWorldGameStateVo>) => void;
   onRestart: () => void;
 };
 
 export function HelloWorldGameBoard({ myPlayerId, game, onCommand, onRestart }: Props) {
   const gameState = useMemo(() => game.getState(), [game]);
 
-  const characters = useMemo(() => gameState.characters, [gameState]);
+  const gameEnded = useMemo(() => gameState.isEnded(), [gameState]);
+
+  const characters = useMemo(() => gameState.getCharacters(), [gameState]);
 
   const myCharacter = useMemo(() => characters.find((character) => character.id === myPlayerId), [characters, myPlayerId]);
 
   const handleSayHello = useCallback(() => {
     if (!myCharacter) return;
-    onCommand(HelloWorldGameSayHelloCommand.create(game.getId(), myPlayerId, myCharacter.count + 1));
+    onCommand(HelloWorldGameSayHelloCommand.create({ gameId: game.getId(), playerId: myPlayerId, count: myCharacter.count + 1 }));
   }, [game, myPlayerId, myCharacter, onCommand]);
 
   return (
@@ -33,12 +35,13 @@ export function HelloWorldGameBoard({ myPlayerId, game, onCommand, onRestart }: 
           <div key={character.id} className="flex flex-col gap-2">
             <Text>{character.name}</Text>
             <Text>{`Said hello for ${character.count} times`}</Text>
-            {character.id === myPlayerId && <Button text="Say hello" onClick={handleSayHello} />}
+            {character.id === myPlayerId && !gameEnded && <Button text="Say hello" onClick={handleSayHello} />}
           </div>
         ))}
       </div>
       <footer className="h-20 flex items-center justify-center border-t border-white/20">
-        <Button text="Restart" onClick={onRestart} />
+        {gameEnded && <Button text="Restart" onClick={onRestart} />}
+        {!gameEnded && <Button text="Start Over" onClick={onRestart} />}
       </footer>
     </div>
   );

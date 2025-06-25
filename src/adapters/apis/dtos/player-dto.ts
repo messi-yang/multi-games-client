@@ -1,3 +1,4 @@
+import { DateVo } from '@/models/global/date-vo';
 import { PlayerModel } from '@/models/player/player-model';
 
 type PlayerDto = {
@@ -10,14 +11,14 @@ type PlayerDto = {
 };
 
 function parsePlayerDto(playerDto: PlayerDto): PlayerModel {
-  return PlayerModel.create(
-    playerDto.id,
-    playerDto.userId,
-    playerDto.name,
-    playerDto.hostPriority,
-    playerDto.createdAt,
-    playerDto.updatedAt
-  );
+  return PlayerModel.create({
+    id: playerDto.id,
+    userId: playerDto.userId,
+    name: playerDto.name,
+    hostPriority: playerDto.hostPriority,
+    createdAt: DateVo.parseString(playerDto.createdAt),
+    updatedAt: DateVo.parseString(playerDto.updatedAt),
+  });
 }
 
 export type { PlayerDto };

@@ -10,7 +10,7 @@ type ConnectionStatus = 'WAITING' | 'CONNECTING' | 'OPEN' | 'DISCONNECTED';
 type ContextValue = {
   roomService: RoomService | null;
   connectionStatus: ConnectionStatus;
-  currentGame: GameModel<object> | null;
+  currentGame: GameModel | null;
   myPlayerId: string | null;
   hostPlayerId: string | null;
   players: PlayerModel[];
@@ -48,7 +48,7 @@ export function Provider({ children }: Props) {
 
   const roomApi = useRef<RoomServiceApi | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('WAITING');
-  const [currentGame, setCurrentGame] = useState<GameModel<object> | null>(null);
+  const [currentGame, setCurrentGame] = useState<GameModel | null>(null);
   useEffect(() => {
     if (!roomService) return () => {};
     return roomService.subscribe('CURRENT_GAME_UPDATED', (newGame) => {
