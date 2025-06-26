@@ -18,6 +18,7 @@ import { CommandModel } from '@/models/game/command-model';
 import { MazeBattleGameRoom } from '@/components/games/maze-battle-game/room';
 import { MazeBattleGameStateVo } from '@/models/game/games/maze-battle/game-state-vo';
 import { ChatBox } from '@/components/boxes/chat-box';
+import { PlayersBox } from '@/components/boxes/players-box';
 
 const Page = function Page({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -158,31 +159,39 @@ const Page = function Page({ params }: { params: Promise<{ id: string }> }) {
         <section className="w-80 h-full rounded-3xl bg-white/5 backdrop-blur-[20px] border border-white/10 shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]">
           <ChatBox messages={messages} onSendMessage={handleSendMessage} />
         </section>
-        <section
-          ref={mapContainerRef}
-          className="relative grow h-full rounded-3xl bg-white/5 backdrop-blur-[20px] border border-white/10 shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]"
-        >
-          <div className={twMerge(currentGame?.hasStarted() ? 'hidden' : 'flex', 'flex-col', 'h-full', 'w-full')}>
-            {currentGame instanceof MazeBattleGameModel && myPlayerId && hostPlayerId && (
-              <MazeBattleGameRoom myPlayerId={myPlayerId} hostPlayerId={hostPlayerId} players={players} onStartGame={handleStartGame} />
-            )}
-          </div>
-          <section className={twMerge(currentGame?.hasStarted() ? 'flex' : 'hidden', 'w-full', 'h-full', 'z-40')}>
-            {currentGame instanceof MazeBattleGameModel &&
-              currentGameState instanceof MazeBattleGameStateVo &&
-              myPlayerId &&
-              hostPlayerId &&
-              currentGame.hasStarted() && (
-                <MazeBattleGameBoard
-                  hostPlayerId={hostPlayerId}
-                  myPlayerId={myPlayerId}
-                  game={currentGame}
-                  gameState={currentGameState}
-                  onCommand={handleCommand}
-                  onRestart={handleRestart}
-                />
+        <div className="flex flex-col gap-4 w-full">
+          <section
+            ref={mapContainerRef}
+            className="relative grow w-full h-full rounded-3xl bg-white/5 backdrop-blur-[20px] border border-white/10 shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]"
+          >
+            <div className={twMerge(currentGame?.hasStarted() ? 'hidden' : 'flex', 'flex-col', 'h-full', 'w-full')}>
+              {currentGame instanceof MazeBattleGameModel && myPlayerId && hostPlayerId && (
+                <MazeBattleGameRoom myPlayerId={myPlayerId} hostPlayerId={hostPlayerId} players={players} />
               )}
+            </div>
+            <section className={twMerge(currentGame?.hasStarted() ? 'flex' : 'hidden', 'w-full', 'h-full', 'z-40')}>
+              {currentGame instanceof MazeBattleGameModel &&
+                currentGameState instanceof MazeBattleGameStateVo &&
+                myPlayerId &&
+                hostPlayerId &&
+                currentGame.hasStarted() && (
+                  <MazeBattleGameBoard myPlayerId={myPlayerId} game={currentGame} gameState={currentGameState} onCommand={handleCommand} />
+                )}
+            </section>
           </section>
+          <section className="flex justify-center gap-2">
+            {currentGame && myPlayerId === hostPlayerId && !currentGame.hasStarted() && (
+              <Button text="Start Game" onClick={handleStartGame} />
+            )}
+            {currentGame && myPlayerId === hostPlayerId && currentGame.hasStarted() && (
+              <Button text="Restart Game" onClick={handleRestart} />
+            )}
+          </section>
+        </div>
+        <section className="w-80 h-full rounded-3xl">
+          {currentGame && myPlayerId && hostPlayerId && (
+            <PlayersBox myPlayerId={myPlayerId} hostPlayerId={hostPlayerId} game={currentGame} players={players} />
+          )}
         </section>
       </div>
     </main>

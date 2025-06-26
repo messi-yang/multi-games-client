@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 import classnames from 'classnames';
 import { MazeBattleGameModel } from '@/models/game/games/maze-battle/game-model';
 import { CommandModel } from '@/models/game/command-model';
-import { Button } from '@/components/buttons/button';
 import { MazeBattleGameStateVo } from '@/models/game/games/maze-battle/game-state-vo';
 import { MazeCanvas } from './maze-canvas';
 import { MazeBattleGameMoveCommand } from '@/models/game/games/maze-battle/commands/move-commands';
@@ -10,20 +9,16 @@ import { useHotKeys } from '@/hooks/use-hot-keys';
 import { DirectionEnum } from '@/models/game/games/maze-battle/direction-enum';
 
 type Props = {
-  hostPlayerId: string;
   myPlayerId: string;
   game: MazeBattleGameModel;
   gameState: MazeBattleGameStateVo;
   onCommand: (command: CommandModel<MazeBattleGameStateVo>) => void;
-  onRestart: () => void;
 };
 
-export function MazeBattleGameBoard({ hostPlayerId, myPlayerId, game, gameState, onRestart, onCommand }: Props) {
+export function MazeBattleGameBoard({ myPlayerId, game, gameState, onCommand }: Props) {
   const gameId = useMemo(() => game.getId(), [game]);
 
   const maze = useMemo(() => gameState.getMaze(), [gameState]);
-
-  const gameEnded = useMemo(() => gameState.isEnded(), [gameState]);
 
   const characters = useMemo(() => gameState.getCharacters(), [gameState]);
 
@@ -105,14 +100,6 @@ export function MazeBattleGameBoard({ hostPlayerId, myPlayerId, game, gameState,
       <div className="flex-1 w-full">
         <MazeCanvas maze={maze} characters={characters} />
       </div>
-      <footer className="w-full h-20 flex items-center justify-center border-t border-white/20 bg-white/5 backdrop-blur-[20px]">
-        {hostPlayerId === myPlayerId && (
-          <>
-            {gameEnded && <Button text="Restart" onClick={onRestart} />}
-            {!gameEnded && <Button text="Start Over" onClick={onRestart} />}
-          </>
-        )}
-      </footer>
     </div>
   );
 }

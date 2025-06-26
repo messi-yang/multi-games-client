@@ -1,20 +1,15 @@
-import { useMemo } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { Icon } from '@iconify/react';
 import { Text } from '@/components/texts/text';
 import { PlayerModel } from '@/models/player/player-model';
-import { Button } from '@/components/buttons/button';
 
 type Props = {
   myPlayerId: string;
   hostPlayerId: string | null;
   players: PlayerModel[];
-  onStartGame: () => void;
 };
 
-export function MazeBattleGameRoom({ myPlayerId, hostPlayerId, players, onStartGame }: Props) {
-  const isMyPlayerHost = useMemo(() => myPlayerId === hostPlayerId, [myPlayerId, hostPlayerId]);
-
+export function MazeBattleGameRoom({ myPlayerId, hostPlayerId, players }: Props) {
   return (
     <div
       className={twMerge(
@@ -48,9 +43,6 @@ export function MazeBattleGameRoom({ myPlayerId, hostPlayerId, players, onStartG
           })}
         </div>
       </div>
-      <footer className="h-20 flex items-center justify-center border-t border-white/20 bg-white/5 backdrop-blur-[20px]">
-        {isMyPlayerHost && <Button text="Start Game" onClick={onStartGame} />}
-      </footer>
     </div>
   );
 }
