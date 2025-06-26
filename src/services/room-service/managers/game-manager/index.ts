@@ -37,12 +37,9 @@ export class GameManager {
 
   private initializeCommands(currentGame: GameModel) {
     const currentGameState = currentGame.getState();
-    if (!currentGameState) {
-      throw new Error('Current game state is null');
-    }
 
     this.executedCommands = [];
-    this.historyGameState = [currentGameState];
+    this.historyGameState = currentGameState ? [currentGameState] : [];
     this.executedCommandMap = {};
     this.failedCommandMap = {};
     this.isReplayingCommands = false;

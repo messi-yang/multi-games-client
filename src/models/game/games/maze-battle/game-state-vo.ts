@@ -2,7 +2,7 @@ import { GameStateVo } from '../../game-state-vo';
 import { CharacterJson, CharacterVo } from './character-vo';
 import { MazeJson, MazeVo } from './maze-vo';
 
-type MazeBattleGameStateJson = {
+export type MazeBattleGameStateJson = {
   maze: MazeJson;
   characters: CharacterJson[];
 };
