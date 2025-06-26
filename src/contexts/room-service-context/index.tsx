@@ -5,6 +5,7 @@ import { NotificationEventDispatcher } from '@/event-dispatchers/notification-ev
 import { PlayerModel } from '@/models/player/player-model';
 import { GameModel } from '@/models/game/game-model';
 import { GameStateVo } from '@/models/game/game-state-vo';
+import { MessageModel } from '@/models/message/message-model';
 
 type ConnectionStatus = 'WAITING' | 'CONNECTING' | 'OPEN' | 'DISCONNECTED';
 
@@ -14,12 +15,15 @@ type ContextValue = {
   currentGame: GameModel | null;
   currentGameState: GameStateVo | null;
   myPlayerId: string | null;
+  myPlayer: PlayerModel | null;
   hostPlayerId: string | null;
   players: PlayerModel[];
+  messages: MessageModel[];
   joinRoom: (roomId: string) => void;
   startGame: () => void;
   setupNewGame: (gameName: string) => void;
   leaveRoom: () => void;
+  sendMessage: (message: string) => void;
 };
 
 const Context = createContext<ContextValue>({
@@ -28,12 +32,15 @@ const Context = createContext<ContextValue>({
   currentGame: null,
   currentGameState: null,
   myPlayerId: null,
+  myPlayer: null,
   hostPlayerId: null,
   players: [],
+  messages: [],
   joinRoom: () => {},
   startGame: () => {},
   setupNewGame: () => {},
   leaveRoom: () => {},
+  sendMessage: () => {},
 });
 
 type Props = {
@@ -68,6 +75,14 @@ export function Provider({ children }: Props) {
     }
   }, [currentGame]);
 
+  const [messages, setMessages] = useState<MessageModel[]>([]);
+  useEffect(() => {
+    if (!roomService) return () => {};
+    return roomService.subscribe('MESSAGE_ADDED', (newMessage) => {
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
+    });
+  }, [roomService]);
+
   useEffect(() => {
     if (!roomService) return () => {};
     return roomService.subscribe('NEW_GAME_SETUP', (newGame) => {
@@ -90,12 +105,34 @@ export function Provider({ children }: Props) {
   }, []);
 
   const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
+  const [myPlayer, setMyPlayer] = useState<PlayerModel | null>(null);
   useEffect(() => {
     if (!roomService) return () => {};
-    return roomService.subscribe('MY_PLAYER_ID_UPDATED', (newMyPlayerId) => {
-      setMyPlayerId(newMyPlayerId);
+    return roomService.subscribe('MY_PLAYER_UPDATED', (newMyPlayer) => {
+      setMyPlayerId(newMyPlayer.getId());
+      setMyPlayer(newMyPlayer);
     });
   }, [roomService]);
+
+  const sendMessage = useCallback(
+    (message: string) => {
+      if (!roomApi.current || !roomService || !myPlayer) return;
+
+      const messageModel = MessageModel.create({
+        playerName: myPlayer.getName(),
+        content: message,
+      });
+      roomService.addMessage(messageModel);
+
+      roomApi.current.sendMessage(
+        MessageModel.create({
+          playerName: myPlayer.getName(),
+          content: message,
+        })
+      );
+    },
+    [roomApi, roomService, myPlayer]
+  );
 
   const [hostPlayerId, setHostPlayerId] = useState<string | null>(null);
 
@@ -141,6 +178,10 @@ export function Provider({ children }: Props) {
       onCommandFailed: (commandId) => {
         if (!newRoomService) return;
         newRoomService.removeFailedCommand(commandId);
+      },
+      onMessageReceived: (message) => {
+        if (!newRoomService) return;
+        newRoomService.addMessage(message);
       },
       onErrored: (message) => {
         notificationEventDispatcher.publishErrorTriggeredEvent(message);
@@ -188,12 +229,15 @@ export function Provider({ children }: Props) {
     currentGame,
     currentGameState,
     myPlayerId,
+    myPlayer,
     hostPlayerId,
     players,
+    messages,
     joinRoom,
     startGame,
     setupNewGame,
     leaveRoom,
+    sendMessage,
   };
 
   return <Context.Provider value={useMemo<ContextValue>(() => context, Object.values(context))}>{children}</Context.Provider>;

@@ -2,7 +2,7 @@
 
 import { useCallback, useContext, useEffect, useState } from 'react';
 import type { NextPage } from 'next';
-import { DashboardLayout } from '@/layouts/dashboard-layout';
+import { DashboardLayout } from '@/components/layouts/dashboard-layout';
 import { UserContext } from '@/contexts/user-context';
 import { Text } from '@/components/texts/text';
 import { Field } from '@/components/fields/field';

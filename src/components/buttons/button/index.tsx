@@ -5,82 +5,73 @@ import { dataTestids } from './data-test-ids';
 
 type Props = {
   text: string;
-  fullWidth?: boolean;
   rightChild?: React.ReactNode;
   loading?: boolean;
   onClick?: () => any;
 };
 
-export function Button({ text, fullWidth = false, rightChild, loading = false, onClick = () => {} }: Props) {
-  const [highlighted, setHighlighted] = useState(false);
+export function Button({ text, rightChild, loading = false, onClick = () => {} }: Props) {
+  const [isPressed, setIsPressed] = useState(false);
 
-  const handleMouseEnter = () => {
-    setHighlighted(true);
+  const handleMouseDown = () => {
+    setIsPressed(true);
+  };
+
+  const handleMouseUp = () => {
+    setIsPressed(false);
   };
 
   const handleMouseLeave = () => {
-    setHighlighted(false);
-  };
-
-  const handleFocus = () => {
-    setHighlighted(true);
-  };
-
-  const handleBlure = () => {
-    setHighlighted(false);
+    setIsPressed(false);
   };
 
   const handleClick = useCallback(() => {
     if (loading) return;
     onClick();
-  }, [onClick]);
+  }, [onClick, loading]);
 
   return (
     <button
       data-testid={dataTestids.root}
       type="button"
-      className={classnames('relative', 'rounded-lg', 'overflow-hidden', 'backdrop-blur', 'h-10', fullWidth ? 'w-full' : undefined, 'px-5')}
+      className={classnames(
+        'relative',
+        'backdrop-blur-sm',
+        'bg-gradient-to-br',
+        'from-white/30',
+        'to-white/10',
+        'text-white',
+        'font-bold',
+        'px-6',
+        'py-2',
+        'rounded-full',
+        'border',
+        'border-white/20',
+        'shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]',
+        'transition-all',
+        'duration-75',
+        'before:absolute',
+        'before:inset-0',
+        'before:rounded-full',
+        'before:bg-gradient-to-br',
+        'before:from-white/20',
+        'before:to-transparent',
+        'before:opacity-0',
+        'hover:before:opacity-100',
+        'active:translate-y-1',
+        'active:shadow-sm',
+        isPressed ? 'translate-y-1 shadow-sm' : 'translate-y-0',
+        loading ? 'opacity-75 cursor-not-allowed' : ''
+      )}
       onClick={handleClick}
-      onFocus={handleFocus}
-      onBlur={handleBlure}
-      onMouseEnter={handleMouseEnter}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseLeave}
+      disabled={loading}
     >
-      <div
-        className={classnames(
-          'absolute',
-          'left-0',
-          'top-0',
-          'w-full',
-          'h-full',
-          'transition-opacity',
-          'duration-200',
-          'ease-out',
-          highlighted ? 'opacity-0' : 'opacity-100'
-        )}
-        style={{
-          backgroundImage: 'linear-gradient(90.02deg, rgba(255, 255, 255, 0.2) 0.01%, rgba(255, 255, 255, 0.1) 99.98%)',
-        }}
-      />
-      <div
-        className={classnames(
-          'absolute',
-          'left-0',
-          'top-0',
-          'w-full',
-          'h-full',
-          'transition-opacity',
-          'duration-200',
-          'ease-out',
-          highlighted ? 'opacity-100' : 'opacity-0'
-        )}
-        style={{
-          backgroundImage: 'linear-gradient(92.88deg, rgba(255, 255, 255, 0.25) 14.49%, rgba(255, 255, 255, 0.12) 98.56%)',
-        }}
-      />
-      <div className={classnames('relative', 'z-10', 'w-full', 'h-full', 'flex', 'justify-center', 'items-center')}>
+      <div className="flex items-center justify-center gap-2 relative">
         <Text size="text-lg">{loading ? 'Processing...' : text}</Text>
-        {rightChild && <div className="ml-2">{rightChild}</div>}
+        {rightChild}
       </div>
     </button>
   );

@@ -86,11 +86,26 @@ export function MazeBattleGameBoard({ hostPlayerId, myPlayerId, game, gameState,
   }, [move]);
 
   return (
-    <div className={classnames('w-full', 'h-full', 'relative', 'rounded-lg', 'overflow-hidden', 'bg-black', 'flex', 'flex-col')}>
+    <div
+      className={classnames(
+        'w-full',
+        'h-full',
+        'relative',
+        'rounded-lg',
+        'overflow-hidden',
+        'bg-white/10',
+        'backdrop-blur-[20px]',
+        'border',
+        'border-white/20',
+        'shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]',
+        'flex',
+        'flex-col'
+      )}
+    >
       <div className="flex-1 w-full">
         <MazeCanvas maze={maze} characters={characters} />
       </div>
-      <footer className="h-20 flex items-center justify-center border-t border-white/20">
+      <footer className="w-full h-20 flex items-center justify-center border-t border-white/20 bg-white/5 backdrop-blur-[20px]">
         {hostPlayerId === myPlayerId && (
           <>
             {gameEnded && <Button text="Restart" onClick={onRestart} />}

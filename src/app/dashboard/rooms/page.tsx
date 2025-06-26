@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 import { MyRoomsContext } from '@/contexts/my-rooms-context';
 import { RoomCard } from '@/components/cards/room-card';
-import { DashboardLayout } from '@/layouts/dashboard-layout';
+import { DashboardLayout } from '@/components/layouts/dashboard-layout';
 import { ConfirmModal } from '@/components/modals/confirm-modal';
 import { RoomModel } from '@/models/room/room-model';
 import { Button } from '@/components/buttons/button';

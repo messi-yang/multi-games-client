@@ -18,11 +18,13 @@ import {
   StartGameRequestedClientEvent,
 } from './client-events';
 import { P2pConnection, createP2pConnection } from './p2p-connection';
-import { CommandSentP2pEvent, P2pEvent, P2pEventNameEnum } from './p2p-events';
+import { CommandSentP2pEvent, MessageSentP2pEvent, P2pEvent, P2pEventNameEnum } from './p2p-events';
 import { parseGameDto } from '../dtos/game-dto';
 import { GameModel } from '@/models/game/game-model';
 import { CommandModel } from '@/models/game/command-model';
 import { CommandDto, parseCommandDto } from '../dtos/command-dto';
+import { MessageModel } from '@/models/message/message-model';
+import { generateMessageDto, MessageDto, parseMessageDto } from '../dtos/message-dto';
 
 function parseRoomJoinedServerEvent(event: RoomJoinedServerEvent): [RoomModel, GameModel, CommandModel[], string, PlayerModel[]] {
   return [
@@ -53,6 +55,7 @@ export class RoomServiceApi {
       onPlayerLeft: (playerId: string) => void;
       onCommandReceived: (command: CommandModel) => void;
       onCommandFailed: (commandId: string) => void;
+      onMessageReceived: (message: MessageModel) => void;
       onErrored: (message: string) => void;
       onDisconnect: () => void;
       onOpen: () => void;
@@ -67,10 +70,15 @@ export class RoomServiceApi {
     let pingServerInterval: NodeJS.Timer | null = null;
 
     const handleP2pMessage = (p2pEvent: P2pEvent) => {
+      console.log('p2p event received: ', p2pEvent.name, p2pEvent);
       if (p2pEvent.name === P2pEventNameEnum.CommandSent) {
         const command = parseCommandDto(p2pEvent.command);
         if (!command) return;
         events.onCommandReceived(command);
+      } else if (p2pEvent.name === P2pEventNameEnum.MessageSent) {
+        const message = parseMessageDto(p2pEvent.message);
+        if (!message) return;
+        events.onMessageReceived(message);
       }
     };
     const handleP2pClose = (peerPlayerId: string) => {
@@ -81,7 +89,7 @@ export class RoomServiceApi {
       const eventJsonString: string = await data.text();
       const event: ServerEvent = JSON.parse(eventJsonString);
 
-      console.log('server event: ', event.name, event);
+      console.log('server event received: ', event.name, event);
       if (event.name === ServerEventNameEnum.RoomJoined) {
         const [room, game, commands, myPlayerId, players] = parseRoomJoinedServerEvent(event);
         const roomService = RoomService.create(room, game, commands, players, myPlayerId);
@@ -89,8 +97,6 @@ export class RoomServiceApi {
         this.roomService = roomService;
       } else if (event.name === ServerEventNameEnum.GameStarted) {
         if (!this.roomService) return;
-
-        console.log('>>> game started event', event);
 
         events.onGameStarted(parseGameDto(event.game));
       } else if (event.name === ServerEventNameEnum.NewGameSetup) {
@@ -109,7 +115,7 @@ export class RoomServiceApi {
               name: ClientEventNameEnum.P2pConnected,
               peerPlayerId: event.player.id,
             };
-            this.sendMessage(clientEvent);
+            this.sendClientEvent(clientEvent);
           },
           onClose: () => {
             handleP2pClose(event.player.id);
@@ -127,7 +133,7 @@ export class RoomServiceApi {
           offer,
         };
 
-        this.sendMessage(clientEvent);
+        this.sendClientEvent(clientEvent);
       } else if (event.name === ServerEventNameEnum.P2pOfferReceived) {
         const newP2pConnection = createP2pConnection({
           onMessage: handleP2pMessage,
@@ -136,7 +142,7 @@ export class RoomServiceApi {
               name: ClientEventNameEnum.P2pConnected,
               peerPlayerId: event.peerPlayerId,
             };
-            this.sendMessage(clientEvent);
+            this.sendClientEvent(clientEvent);
           },
           onClose: () => {
             handleP2pClose(event.peerPlayerId);
@@ -154,7 +160,7 @@ export class RoomServiceApi {
           answer,
         };
 
-        this.sendMessage(clientEvent);
+        this.sendClientEvent(clientEvent);
       } else if (event.name === ServerEventNameEnum.P2pAnswerReceived) {
         const p2pConnection = this.p2pConnectionMap.get(event.peerPlayerId);
         if (!p2pConnection) return;
@@ -207,6 +213,7 @@ export class RoomServiceApi {
       onPlayerLeft: (playerId: string) => void;
       onCommandReceived: (command: CommandModel) => void;
       onCommandFailed: (commandId: string) => void;
+      onMessageReceived: (message: MessageModel) => void;
       onErrored: (message: string) => void;
       onDisconnect: () => void;
       onOpen: () => void;
@@ -220,7 +227,9 @@ export class RoomServiceApi {
     this.socket.close();
   }
 
-  private async sendMessage(clientEvent: ClientEvent) {
+  private async sendClientEvent(clientEvent: ClientEvent) {
+    console.log('client event sent: ', clientEvent.name, clientEvent);
+
     const jsonString = JSON.stringify(clientEvent);
     const jsonBlob = new Blob([jsonString]);
 
@@ -231,13 +240,12 @@ export class RoomServiceApi {
   }
 
   public startGame(gameId: string, gameState: object) {
-    console.log('>>> startGame request', gameId, gameState);
     const clientEvent: StartGameRequestedClientEvent = {
       name: ClientEventNameEnum.StartGameRequested,
       gameId,
       gameState,
     };
-    this.sendMessage(clientEvent);
+    this.sendClientEvent(clientEvent);
   }
 
   public setupNewGame(gameName: string) {
@@ -245,14 +253,34 @@ export class RoomServiceApi {
       name: ClientEventNameEnum.SetupNewGameRequested,
       gameName,
     };
-    this.sendMessage(clientEvent);
+    this.sendClientEvent(clientEvent);
   }
 
   public ping() {
     const clientEvent: PingClientEvent = {
       name: ClientEventNameEnum.Ping,
     };
-    this.sendMessage(clientEvent);
+    this.sendClientEvent(clientEvent);
+  }
+
+  public sendMessage(message: MessageModel) {
+    if (!this.roomService) return;
+
+    const messageDto: MessageDto = generateMessageDto(message);
+    if (!messageDto) return;
+
+    this.roomService.getOtherPlayers().forEach((otherPlayer) => {
+      const otherPlayerId = otherPlayer.getId();
+      const p2pConnection = this.p2pConnectionMap.get(otherPlayerId);
+
+      if (p2pConnection) {
+        const p2pEvent: MessageSentP2pEvent = {
+          name: P2pEventNameEnum.MessageSent,
+          message: messageDto,
+        };
+        p2pConnection.sendMessage(p2pEvent);
+      }
+    });
   }
 
   public sendCommand(command: CommandModel) {
@@ -266,7 +294,7 @@ export class RoomServiceApi {
       name: ClientEventNameEnum.CommandExecuted,
       command: commandDto,
     };
-    this.sendMessage(clientEvent);
+    this.sendClientEvent(clientEvent);
 
     this.roomService.getOtherPlayers().forEach((otherPlayer) => {
       const otherPlayerId = otherPlayer.getId();
@@ -285,7 +313,7 @@ export class RoomServiceApi {
         };
         const succeeded = p2pConnection.sendMessage(p2pEvent);
         if (!succeeded) {
-          this.sendMessage(commandSentClientEvent);
+          this.sendClientEvent(commandSentClientEvent);
         }
       }
     });

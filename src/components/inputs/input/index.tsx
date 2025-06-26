@@ -25,15 +25,20 @@ export function Input({ value, disabled = false, placeholder = '', onInput = () 
       className={classnames(
         'flex',
         'w-full',
-        'bg-gray-50',
+        'bg-white/20',
+        'backdrop-blur-sm',
         'border',
-        'border-gray-300',
-        'text-gray-900',
+        'border-white/20',
+        'text-white/90',
         'text-sm',
-        'rounded-lg',
-        'focus:ring-blue-500',
-        'focus:border-blue-500',
-        'p-2.5'
+        'rounded-xl',
+        'focus:ring-white/30',
+        'focus:border-white/30',
+        'p-2.5',
+        'shadow-lg',
+        'placeholder:text-white/50',
+        'hover:bg-white/30',
+        'transition-colors'
       )}
       value={value}
       disabled={disabled}

@@ -12,7 +12,7 @@ export class PlayerManager {
 
   private playersUpdatedEventHandler = EventHandler.create<PlayerModel[]>();
 
-  private myPlayerIdUpdatedEventHandler = EventHandler.create<string>();
+  private myPlayerUpdatedEventHandler = EventHandler.create<PlayerModel>();
 
   constructor(players: PlayerModel[], myPlayerId: string) {
     this.myPlayerId = myPlayerId;
@@ -156,8 +156,8 @@ export class PlayerManager {
     this.hostPlayerIdUpdatedEventHandler.publish(hostPlayerId);
   }
 
-  public subscribeMyPlayerIdUpdatedEvent(subscriber: EventHandlerSubscriber<string>): () => void {
-    subscriber(this.myPlayerId);
-    return this.myPlayerIdUpdatedEventHandler.subscribe(subscriber);
+  public subscribeMyPlayerUpdatedEvent(subscriber: EventHandlerSubscriber<PlayerModel>): () => void {
+    subscriber(this.getMyPlayer());
+    return this.myPlayerUpdatedEventHandler.subscribe(subscriber);
   }
 }

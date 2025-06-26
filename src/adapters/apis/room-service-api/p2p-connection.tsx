@@ -117,6 +117,8 @@ class P2pConnectionImpl implements P2pConnection {
    * @returns succeeded
    */
   public sendMessage(p2pEvent: P2pEvent): boolean {
+    console.log('sendMessage', p2pEvent.name, p2pEvent);
+
     if (!this.dataChannel) return false;
     if (this.dataChannel?.readyState !== 'open') return false;
 
