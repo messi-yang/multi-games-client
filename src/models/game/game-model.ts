@@ -8,7 +8,7 @@ type Props<GameState extends GameStateVo = GameStateVo> = {
   roomId: string;
   name: GameNameEnum;
   started: boolean;
-  state: GameState;
+  state: GameState | null;
   createdAt: DateVo;
   updatedAt: DateVo;
 };
@@ -22,7 +22,7 @@ export abstract class GameModel<GameState extends GameStateVo = GameStateVo> {
 
   protected started: boolean;
 
-  protected state: GameState;
+  protected state: GameState | null;
 
   protected createdAt: DateVo;
 
@@ -54,7 +54,7 @@ export abstract class GameModel<GameState extends GameStateVo = GameStateVo> {
 
   abstract isPlayerInGame(playerId: string): boolean;
 
-  public getState(): GameState {
+  public getState(): GameState | null {
     return this.state;
   }
 

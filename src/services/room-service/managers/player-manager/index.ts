@@ -38,6 +38,10 @@ export class PlayerManager {
     return this.myPlayerId;
   }
 
+  public getHostPlayerId(): string | null {
+    return this.hostPlayerId;
+  }
+
   public getMyPlayer(): PlayerModel {
     const myPlayer = this.playerMap[this.myPlayerId];
     if (!myPlayer) throw new Error('My player will never be undefined');

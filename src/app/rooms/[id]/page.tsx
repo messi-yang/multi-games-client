@@ -12,10 +12,11 @@ import { AuthContext } from '@/contexts/auth-context';
 import { RoomMembersContext } from '@/contexts/room-members-context';
 import { Button } from '@/components/buttons/button';
 import { ShareRoomModal } from '@/components/modals/share-room-modal';
-import { HelloWorldGameBoard } from '@/components/games/hello-world-game/board';
-import { HelloWorldGameModel } from '@/models/game/games/hello-world/game-model';
+import { MazeBattleGameBoard } from '@/components/games/maze-battle-game/board';
+import { MazeBattleGameModel } from '@/models/game/games/maze-battle/game-model';
 import { CommandModel } from '@/models/game/command-model';
-import { HelloWorldGameRoom } from '@/components/games/hello-world-game/room';
+import { MazeBattleGameRoom } from '@/components/games/maze-battle-game/room';
+import { MazeBattleGameStateVo } from '@/models/game/games/maze-battle/game-state-vo';
 
 const Page = function Page({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -39,8 +40,19 @@ const Page = function Page({ params }: { params: Promise<{ id: string }> }) {
   }, [isSingedIn, roomId, getRoomMembers]);
 
   const mapContainerRef = useRef<HTMLElement | null>(null);
-  const { roomService, connectionStatus, players, myPlayerId, hostPlayerId, joinRoom, leaveRoom, currentGame, startGame, setupNewGame } =
-    useContext(RoomServiceContext);
+  const {
+    roomService,
+    connectionStatus,
+    players,
+    myPlayerId,
+    hostPlayerId,
+    joinRoom,
+    leaveRoom,
+    currentGame,
+    currentGameState,
+    startGame,
+    setupNewGame,
+  } = useContext(RoomServiceContext);
 
   const isDisconnected = connectionStatus === 'DISCONNECTED';
   useEffect(() => {
@@ -128,14 +140,25 @@ const Page = function Page({ params }: { params: Promise<{ id: string }> }) {
       </header>
       <div className="relative flex flex-row gap-4 flex-1 overflow-hidden">
         <section ref={mapContainerRef} className="w-full h-full">
-          {currentGame instanceof HelloWorldGameModel && myPlayerId && hostPlayerId && (
-            <HelloWorldGameRoom myPlayerId={myPlayerId} hostPlayerId={hostPlayerId} players={players} onStartGame={handleStartGame} />
+          {currentGame instanceof MazeBattleGameModel && myPlayerId && hostPlayerId && (
+            <MazeBattleGameRoom myPlayerId={myPlayerId} hostPlayerId={hostPlayerId} players={players} onStartGame={handleStartGame} />
           )}
         </section>
         <section className={twMerge('absolute', 'top-0', currentGame?.hasStarted() ? 'left-0' : 'left-full', 'w-full', 'h-full', 'z-40')}>
-          {currentGame instanceof HelloWorldGameModel && myPlayerId && currentGame.hasStarted() && (
-            <HelloWorldGameBoard myPlayerId={myPlayerId} game={currentGame} onCommand={handleCommand} onRestart={handleRestart} />
-          )}
+          {currentGame instanceof MazeBattleGameModel &&
+            currentGameState instanceof MazeBattleGameStateVo &&
+            myPlayerId &&
+            hostPlayerId &&
+            currentGame.hasStarted() && (
+              <MazeBattleGameBoard
+                hostPlayerId={hostPlayerId}
+                myPlayerId={myPlayerId}
+                game={currentGame}
+                gameState={currentGameState}
+                onCommand={handleCommand}
+                onRestart={handleRestart}
+              />
+            )}
         </section>
       </div>
     </main>

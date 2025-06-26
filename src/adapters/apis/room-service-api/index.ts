@@ -90,6 +90,8 @@ export class RoomServiceApi {
       } else if (event.name === ServerEventNameEnum.GameStarted) {
         if (!this.roomService) return;
 
+        console.log('>>> game started event', event);
+
         events.onGameStarted(parseGameDto(event.game));
       } else if (event.name === ServerEventNameEnum.NewGameSetup) {
         if (!this.roomService) return;
@@ -229,6 +231,7 @@ export class RoomServiceApi {
   }
 
   public startGame(gameId: string, gameState: object) {
+    console.log('>>> startGame request', gameId, gameState);
     const clientEvent: StartGameRequestedClientEvent = {
       name: ClientEventNameEnum.StartGameRequested,
       gameId,

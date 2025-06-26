@@ -81,6 +81,10 @@ export class RoomService {
     return this.playerManager.getMyPlayer();
   }
 
+  public isHostPlayer(playerId: string): boolean {
+    return this.playerManager.getHostPlayerId() === playerId;
+  }
+
   public getPlayers(): PlayerModel[] {
     return this.playerManager.getPlayers();
   }

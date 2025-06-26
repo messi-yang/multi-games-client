@@ -4,6 +4,7 @@ import { RoomService } from '@/services/room-service';
 import { NotificationEventDispatcher } from '@/event-dispatchers/notification-event-dispatcher';
 import { PlayerModel } from '@/models/player/player-model';
 import { GameModel } from '@/models/game/game-model';
+import { GameStateVo } from '@/models/game/game-state-vo';
 
 type ConnectionStatus = 'WAITING' | 'CONNECTING' | 'OPEN' | 'DISCONNECTED';
 
@@ -11,6 +12,7 @@ type ContextValue = {
   roomService: RoomService | null;
   connectionStatus: ConnectionStatus;
   currentGame: GameModel | null;
+  currentGameState: GameStateVo | null;
   myPlayerId: string | null;
   hostPlayerId: string | null;
   players: PlayerModel[];
@@ -24,6 +26,7 @@ const Context = createContext<ContextValue>({
   roomService: null,
   connectionStatus: 'WAITING',
   currentGame: null,
+  currentGameState: null,
   myPlayerId: null,
   hostPlayerId: null,
   players: [],
@@ -55,6 +58,15 @@ export function Provider({ children }: Props) {
       setCurrentGame(newGame);
     });
   }, [roomService]);
+
+  const [currentGameState, setCurrentGameState] = useState<GameStateVo | null>(null);
+  useEffect(() => {
+    if (!currentGame) {
+      setCurrentGameState(null);
+    } else {
+      setCurrentGameState(currentGame.getState());
+    }
+  }, [currentGame]);
 
   useEffect(() => {
     if (!roomService) return () => {};
@@ -149,7 +161,7 @@ export function Provider({ children }: Props) {
   const startGame = useCallback(() => {
     if (!roomApi.current || !roomService || !currentGame) return;
 
-    roomApi.current.startGame(currentGame.getId(), currentGame.generateInitialState(players));
+    roomApi.current.startGame(currentGame.getId(), currentGame.generateInitialState(players).toJson());
   }, [roomService, players, currentGame, roomApi]);
 
   const setupNewGame = useCallback(
@@ -174,6 +186,7 @@ export function Provider({ children }: Props) {
     roomService,
     connectionStatus,
     currentGame,
+    currentGameState,
     myPlayerId,
     hostPlayerId,
     players,

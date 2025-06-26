@@ -12,13 +12,13 @@ type Props = {
   onStartGame: () => void;
 };
 
-export function HelloWorldGameRoom({ myPlayerId, hostPlayerId, players, onStartGame }: Props) {
-  const isHost = useMemo(() => myPlayerId === hostPlayerId, [myPlayerId, hostPlayerId]);
+export function MazeBattleGameRoom({ myPlayerId, hostPlayerId, players, onStartGame }: Props) {
+  const isMyPlayerHost = useMemo(() => myPlayerId === hostPlayerId, [myPlayerId, hostPlayerId]);
 
   return (
     <div className={twMerge('w-full', 'h-full', 'flex', 'flex-col', 'relative', 'rounded-lg', 'backdrop-blur', 'px-5', 'overflow-auto')}>
       <div className={twMerge('flex-1', 'py-5')}>
-        <div className={twMerge('grid', 'grid-cols-[repeat(auto-fill,minmax(10rem,1fr))]', 'gap-4')}>
+        <div className={twMerge('grid', 'grid-cols-[repeat(auto-fill,minmax(16rem,1fr))]', 'gap-4')}>
           {players.map((player) => {
             return (
               <div key={player.getId()} className="h-16 flex items-center gap-2 border border-white rounded-lg p-2">
@@ -31,7 +31,7 @@ export function HelloWorldGameRoom({ myPlayerId, hostPlayerId, players, onStartG
         </div>
       </div>
       <footer className="h-20 flex items-center justify-center border-t border-white/20">
-        {isHost && <Button text="Start Game" onClick={onStartGame} />}
+        {isMyPlayerHost && <Button text="Start Game" onClick={onStartGame} />}
       </footer>
     </div>
   );

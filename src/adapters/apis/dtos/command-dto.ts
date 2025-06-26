@@ -1,6 +1,6 @@
 import { CommandModel } from '@/models/game/command-model';
-import { CommandNamePrefixEnum } from '@/models/game/command-name-prefix-enum';
-import { parseHelloWorldGameCommandJson } from '@/models/game/games/hello-world/commands/command-json-parser';
+import { GameNameEnum } from '@/models/game/game-name-enum';
+import { parseMazeBattleGameCommandJson } from '@/models/game/games/maze-battle/commands/command-json-parser';
 
 export type CommandDto = {
   id: string;
@@ -12,8 +12,8 @@ export type CommandDto = {
 };
 
 export function parseCommandDto(dto: CommandDto): CommandModel {
-  if (dto.name.startsWith(CommandNamePrefixEnum.HelloWorld)) {
-    return parseHelloWorldGameCommandJson(dto);
+  if (dto.name.startsWith(GameNameEnum.MazeBattle)) {
+    return parseMazeBattleGameCommandJson(dto);
   }
 
   throw new Error(`Unknown command name: ${dto.name}`);

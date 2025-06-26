@@ -1,3 +1,3 @@
 export enum GameNameEnum {
-  Default = 'default',
+  MazeBattle = 'maze_battle',
 }

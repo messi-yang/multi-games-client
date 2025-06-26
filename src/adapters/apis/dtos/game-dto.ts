@@ -1,6 +1,6 @@
 import { GameNameEnum } from '@/models/game/game-name-enum';
-import { HelloWorldGameModel } from '@/models/game/games/hello-world/game-model';
-import { HelloWorldGameStateVo } from '@/models/game/games/hello-world/game-state-vo';
+import { MazeBattleGameModel } from '@/models/game/games/maze-battle/game-model';
+import { MazeBattleGameStateVo } from '@/models/game/games/maze-battle/game-state-vo';
 import { DateVo } from '@/models/global/date-vo';
 
 type GameDto = {
@@ -13,14 +13,16 @@ type GameDto = {
   updatedAt: string;
 };
 
-function parseGameDto(dto: GameDto): HelloWorldGameModel {
-  if (dto.name === GameNameEnum.Default) {
-    return HelloWorldGameModel.create({
+function parseGameDto(dto: GameDto): MazeBattleGameModel {
+  const isStateEmpty = Object.keys(dto.state).length === 0;
+
+  if (dto.name === GameNameEnum.MazeBattle) {
+    return MazeBattleGameModel.create({
       id: dto.id,
       roomId: dto.roomId,
       name: dto.name,
       started: dto.started,
-      state: HelloWorldGameStateVo.fromJson(dto.state),
+      state: MazeBattleGameStateVo.fromJson(isStateEmpty ? null : dto.state),
       createdAt: DateVo.parseString(dto.createdAt),
       updatedAt: DateVo.parseString(dto.updatedAt),
     });
