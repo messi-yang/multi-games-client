@@ -151,7 +151,7 @@ const Page = function Page({ params }: { params: Promise<{ id: string }> }) {
           onClick={handleLogoClick}
           onKeyDown={handleLogoKeyDown}
         >
-          <Image src="/assets/images/logos/small-logo.png" alt="small logo" width={32} height={32} className="drop-shadow-lg" />
+          <Image src="/assets/logo.png" alt="small logo" width={32} height={32} className="drop-shadow-lg" />
         </section>
         <Button text="Share" onClick={handleShareClick} />
       </header>

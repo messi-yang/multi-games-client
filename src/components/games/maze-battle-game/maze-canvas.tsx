@@ -37,7 +37,7 @@ export function MazeCanvas({ maze, characters }: Props) {
   const [stoneAsset, setStoneAsset] = useState<Texture | null>(null);
   useEffect(() => {
     if (stoneAsset) return;
-    Assets.load<Texture>('/games/maze-battle/stone.png').then((asset) => {
+    Assets.load<Texture>('/assets/games/maze-battle/stone.png').then((asset) => {
       setStoneAsset(asset);
     });
   }, [application, stoneAsset]);
@@ -45,7 +45,7 @@ export function MazeCanvas({ maze, characters }: Props) {
   const [dirtAsset, setDirtAsset] = useState<Texture | null>(null);
   useEffect(() => {
     if (dirtAsset) return;
-    Assets.load<Texture>('/games/maze-battle/dirt.png').then((asset) => {
+    Assets.load<Texture>('/assets/games/maze-battle/dirt.png').then((asset) => {
       setDirtAsset(asset);
     });
   }, [application, dirtAsset]);
@@ -53,7 +53,7 @@ export function MazeCanvas({ maze, characters }: Props) {
   const [characterAsset, setCharacterAsset] = useState<Texture | null>(null);
   useEffect(() => {
     if (characterAsset) return;
-    Assets.load<Texture>('/games/maze-battle/character.png').then((asset) => {
+    Assets.load<Texture>('/assets/games/maze-battle/character.png').then((asset) => {
       setCharacterAsset(asset);
     });
   }, [application, characterAsset]);
