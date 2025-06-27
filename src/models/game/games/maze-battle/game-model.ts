@@ -5,6 +5,7 @@ import { PlayerModel } from '@/models/player/player-model';
 import { MazeBattleGameStateVo } from './game-state-vo';
 import { CharacterVo } from './character-vo';
 import { MazeVo } from './maze-vo';
+import { getRandomColor } from './utils';
 
 type Props = {
   id: string;
@@ -48,7 +49,7 @@ export class MazeBattleGameModel extends GameModel<MazeBattleGameStateVo> {
           name: player.getName(),
           position: maze.getStartPosition(),
           reachedGoadAt: null,
-          color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+          color: getRandomColor(),
         })
       );
     }

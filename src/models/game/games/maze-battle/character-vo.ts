@@ -1,5 +1,6 @@
 import { DateVo } from '@/models/global/date-vo';
 import { PositionJson, PositionVo } from './position-vo';
+import { getRandomColor } from './utils';
 
 export type CharacterJson = {
   id: string;
@@ -46,7 +47,7 @@ export class CharacterVo {
       name: json.name,
       position: PositionVo.fromJson(json.position),
       reachedGoadAt: json.reachedGoadAt ? DateVo.parseString(json.reachedGoadAt) : null,
-      color: json.color,
+      color: json.color.length === 6 ? json.color : getRandomColor(),
     });
   }
 
