@@ -129,5 +129,14 @@ class P2pConnectionImpl implements P2pConnection {
 }
 
 export const createP2pConnection = (options: { onMessage: OnMessage; onClose: OnClose; onOpen: OnOpen }): P2pConnection => {
-  return new P2pConnectionImpl(new RTCPeerConnection(), [], null, options.onMessage, options.onOpen, options.onClose);
+  return new P2pConnectionImpl(
+    new RTCPeerConnection({
+      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun.voipbuster.com' }, { urls: 'stun:stun.ekiga.net' }],
+    }),
+    [],
+    null,
+    options.onMessage,
+    options.onOpen,
+    options.onClose
+  );
 };

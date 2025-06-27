@@ -61,9 +61,10 @@ export function MazeCanvas({ maze, characters }: Props) {
   const [mazeContainer, setMazeContainer] = useState<Container | null>(null);
   useEffect(() => {
     if (!application) return;
-    if (mazeContainer) return;
     if (!stoneAsset) return;
     if (!dirtAsset) return;
+
+    console.log('mazeContainer', mazeContainer);
 
     const newMazeContainer = new Container();
 
@@ -87,7 +88,7 @@ export function MazeCanvas({ maze, characters }: Props) {
 
     setMazeContainer(newMazeContainer);
     application.stage.addChild(newMazeContainer);
-  }, [application, maze, stoneAsset, dirtAsset, mazeContainer]);
+  }, [application, maze, stoneAsset, dirtAsset]);
 
   useEffect(() => {
     if (!application) return () => {};
