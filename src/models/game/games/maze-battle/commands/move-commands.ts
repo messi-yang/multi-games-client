@@ -82,7 +82,10 @@ export class MazeBattleGameMoveCommand extends CommandModel<MazeBattleGameStateV
       return gameState;
     }
 
-    const newCharacter = character.updatePosition(newPosition);
+    let newCharacter = character.updatePosition(newPosition);
+    if (newPosition.equals(maze.getEndPosition())) {
+      newCharacter = newCharacter.setReachedGoadAt(DateVo.now());
+    }
     return gameState.updateCharacter(newCharacter);
   }
 

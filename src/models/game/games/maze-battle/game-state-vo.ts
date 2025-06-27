@@ -68,6 +68,17 @@ export class MazeBattleGameStateVo extends GameStateVo<MazeBattleGameStateJson> 
     });
   }
 
+  public getWinners(): CharacterVo[] {
+    return this.characters
+      .filter((character) => character.getReachedGoadAt() !== null)
+      .sort((a, b) => {
+        const aReachedGoadAt = a.getReachedGoadAt();
+        const bReachedGoadAt = b.getReachedGoadAt();
+        if (aReachedGoadAt === null || bReachedGoadAt === null) return 0;
+        return aReachedGoadAt.toTimestamp() - bReachedGoadAt.toTimestamp();
+      });
+  }
+
   public isEnded(): boolean {
     return false;
   }

@@ -59,66 +59,75 @@ export class MazeVo {
       }
     }
 
-    // Break walls to create paths
-    const breakWalls = (x: number, y: number) => {
-      if (x < 0 || x >= props.width || y < 0 || y >= props.height) return;
-      if (cells[x][y] instanceof WallVo) {
-        cells[x][y] = RoadVo.create();
+    // Initialize disjoint set for Kruskal's algorithm
+    const parent: number[] = [];
+    const rank: number[] = [];
+
+    const find = (x: number): number => {
+      if (parent[x] !== x) {
+        parent[x] = find(parent[x]);
       }
+      return parent[x];
     };
 
-    // Create maze using DFS or random approach
-    const visited = Array.from({ length: props.height }, () => Array(props.width).fill(false));
+    const union = (x: number, y: number) => {
+      const rootX = find(x);
+      const rootY = find(y);
 
-    // Start point (1, 1) and end point (width - 2, height - 2)
-    const startX = 1;
-    const startY = 1;
-    const endX = props.width - 2;
-    const endY = props.height - 2;
-
-    // Mark the start and end points as roads
-    breakWalls(0, 1);
-    breakWalls(startX, startY);
-    breakWalls(endX, endY);
-    breakWalls(props.width - 1, props.height - 2);
-
-    // Directions: right, down, left, up (clockwise direction)
-    const directions = [
-      { dx: 1, dy: 0 }, // right
-      { dx: 0, dy: 1 }, // down
-      { dx: -1, dy: 0 }, // left
-      { dx: 0, dy: -1 }, // up
-    ];
-
-    // Randomized DFS algorithm for maze generation
-    const generateMaze = (x: number, y: number) => {
-      visited[x][y] = true;
-
-      // Shuffle directions to create randomness
-      const shuffledDirections = directions.sort(() => Math.random() - 0.5);
-
-      // Go through each direction
-      for (let i = 0; i < shuffledDirections.length; i += 1) {
-        const { dx, dy } = shuffledDirections[i];
-        const newX = x + dx * 2;
-        const newY = y + dy * 2;
-
-        // Check if the new position is valid and unvisited
-        if (newX >= 0 && newX < props.width && newY >= 0 && newY < props.height && !visited[newX][newY]) {
-          // Break the wall between the current cell and the new cell
-          breakWalls(x + dx, y + dy);
-          breakWalls(newX, newY);
-
-          // Recursively visit the new cell
-          generateMaze(newX, newY);
+      if (rootX !== rootY) {
+        if (rank[rootX] < rank[rootY]) {
+          parent[rootX] = rootY;
+        } else if (rank[rootX] > rank[rootY]) {
+          parent[rootY] = rootX;
+        } else {
+          parent[rootY] = rootX;
+          rank[rootX] += 1;
         }
       }
     };
 
-    // Start maze generation from the starting point (1, 1)
-    generateMaze(startX, startY);
+    // Create list of all possible walls that can be removed
+    const walls: { x: number; y: number; dx: number; dy: number }[] = [];
+    for (let x = 1; x < props.width - 1; x += 2) {
+      for (let y = 1; y < props.height - 1; y += 2) {
+        // Make cells at odd coordinates into rooms
+        cells[x][y] = RoadVo.create();
+        const cellId = x * props.height + y;
+        parent[cellId] = cellId;
+        rank[cellId] = 0;
 
-    // Return the MazeVo object with the generated cells
+        // Add walls to the right and down
+        if (x + 2 < props.width - 1) {
+          walls.push({ x, y, dx: 2, dy: 0 });
+        }
+        if (y + 2 < props.height - 1) {
+          walls.push({ x, y, dx: 0, dy: 2 });
+        }
+      }
+    }
+
+    // Shuffle walls randomly
+    for (let i = walls.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [walls[i], walls[j]] = [walls[j], walls[i]];
+    }
+
+    // Process each wall using Kruskal's algorithm
+    walls.forEach(({ x, y, dx, dy }) => {
+      const cell1 = x * props.height + y;
+      const cell2 = (x + dx) * props.height + (y + dy);
+
+      if (find(cell1) !== find(cell2)) {
+        union(cell1, cell2);
+        cells[x + dx / 2][y + dy / 2] = RoadVo.create();
+        cells[x + dx][y + dy] = RoadVo.create();
+      }
+    });
+
+    // Create entrance and exit
+    cells[0][1] = RoadVo.create();
+    cells[props.width - 1][props.height - 2] = RoadVo.create();
+
     return new MazeVo({ width: props.width, height: props.height, cells });
   }
 

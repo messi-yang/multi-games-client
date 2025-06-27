@@ -7,6 +7,7 @@ import { MazeCanvas } from './maze-canvas';
 import { MazeBattleGameMoveCommand } from '@/models/game/games/maze-battle/commands/move-commands';
 import { useHotKeys } from '@/hooks/use-hot-keys';
 import { DirectionEnum } from '@/models/game/games/maze-battle/direction-enum';
+import { Text } from '@/components/texts/text';
 
 type Props = {
   myPlayerId: string;
@@ -81,24 +82,30 @@ export function MazeBattleGameBoard({ myPlayerId, game, gameState, onCommand }: 
   }, [move]);
 
   return (
-    <div
-      className={classnames(
-        'w-full',
-        'h-full',
-        'relative',
-        'rounded-lg',
-        'overflow-hidden',
-        'bg-white/10',
-        'backdrop-blur-[20px]',
-        'border',
-        'border-white/20',
-        'shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]',
-        'flex',
-        'flex-col'
-      )}
-    >
+    <div className={classnames('w-full', 'h-full', 'relative', 'overflow-hidden', 'flex', 'flex-row')}>
+      <div className="w-40 p-4 flex flex-col gap-4">
+        <Text>Characters</Text>
+        <div className="flex flex-col gap-2">
+          {characters.map((character) => (
+            <div key={character.getId()} className="flex flex-row gap-2 items-center">
+              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: character.getColor() }} />
+              <Text>{character.getName()}</Text>
+            </div>
+          ))}
+        </div>
+      </div>
       <div className="flex-1 w-full">
         <MazeCanvas maze={maze} characters={characters} />
+      </div>
+      <div className="w-40 p-4 flex flex-col gap-4">
+        <Text>Winners</Text>
+        <div className="flex flex-col gap-2">
+          {gameState.getWinners().map((winner, winnerIndex) => (
+            <Text key={winner.getId()}>
+              {winnerIndex + 1}. {winner.getName()}
+            </Text>
+          ))}
+        </div>
       </div>
     </div>
   );

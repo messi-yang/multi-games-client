@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Application, Sprite, Container, Assets, Texture } from 'pixi.js';
+import { Application, Sprite, Container, Assets, Texture, Graphics } from 'pixi.js';
 import { CharacterVo } from '@/models/game/games/maze-battle/character-vo';
 import { MazeVo } from '@/models/game/games/maze-battle/maze-vo';
 import { WallVo } from '@/models/game/games/maze-battle/wall-vo';
 
-const CELL_SIZE = 10;
+const CELL_SIZE = 12;
 
 type Props = {
   maze: MazeVo;
@@ -25,8 +25,8 @@ export function MazeCanvas({ maze, characters }: Props) {
     newApp
       .init({
         background: 0x000000,
-        width: maze.getWidth() * 10,
-        height: maze.getHeight() * 10,
+        width: maze.getWidth() * CELL_SIZE,
+        height: maze.getHeight() * CELL_SIZE,
         antialias: true,
       })
       .then(() => {
@@ -50,21 +50,11 @@ export function MazeCanvas({ maze, characters }: Props) {
     });
   }, [application, dirtAsset]);
 
-  const [characterAsset, setCharacterAsset] = useState<Texture | null>(null);
-  useEffect(() => {
-    if (characterAsset) return;
-    Assets.load<Texture>('/assets/games/maze-battle/character.png').then((asset) => {
-      setCharacterAsset(asset);
-    });
-  }, [application, characterAsset]);
-
   const [mazeContainer, setMazeContainer] = useState<Container | null>(null);
   useEffect(() => {
     if (!application) return;
     if (!stoneAsset) return;
     if (!dirtAsset) return;
-
-    console.log('mazeContainer', mazeContainer);
 
     const newMazeContainer = new Container();
 
@@ -93,17 +83,17 @@ export function MazeCanvas({ maze, characters }: Props) {
   useEffect(() => {
     if (!application) return () => {};
     if (!mazeContainer) return () => {};
-    if (!characterAsset) return () => {};
 
     const newCharactersContainer = new Container();
 
     characters.forEach((character) => {
-      const characterSprite = new Sprite(characterAsset);
-      characterSprite.x = character.getPosition().getX() * CELL_SIZE;
-      characterSprite.y = character.getPosition().getY() * CELL_SIZE;
-      characterSprite.width = CELL_SIZE;
-      characterSprite.height = CELL_SIZE;
-      newCharactersContainer.addChild(characterSprite);
+      const characterCircle = new Graphics();
+      characterCircle.beginFill(character.getColor());
+      characterCircle.drawCircle(CELL_SIZE / 2, CELL_SIZE / 2, CELL_SIZE / 2);
+      characterCircle.endFill();
+      characterCircle.x = character.getPosition().getX() * CELL_SIZE;
+      characterCircle.y = character.getPosition().getY() * CELL_SIZE;
+      newCharactersContainer.addChild(characterCircle);
     });
 
     application.stage.addChild(newCharactersContainer);
@@ -113,5 +103,5 @@ export function MazeCanvas({ maze, characters }: Props) {
     };
   }, [application, characters, mazeContainer]);
 
-  return <div className="w-full h-full flex items-center justify-center backdrop-blur-sm" ref={setAppContainerElem} />;
+  return <div className="w-full h-full flex items-center justify-center" ref={setAppContainerElem} />;
 }

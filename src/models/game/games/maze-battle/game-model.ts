@@ -42,7 +42,15 @@ export class MazeBattleGameModel extends GameModel<MazeBattleGameStateVo> {
     const characters: CharacterVo[] = [];
     for (let i = 0; i < players.length; i += 1) {
       const player = players[i];
-      characters.push(CharacterVo.create({ id: player.getId(), name: player.getName(), position: maze.getStartPosition() }));
+      characters.push(
+        CharacterVo.create({
+          id: player.getId(),
+          name: player.getName(),
+          position: maze.getStartPosition(),
+          reachedGoadAt: null,
+          color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+        })
+      );
     }
     return MazeBattleGameStateVo.create({ maze, characters });
   }
@@ -60,6 +68,6 @@ export class MazeBattleGameModel extends GameModel<MazeBattleGameStateVo> {
       return false;
     }
     const characters = currentState.getCharacters();
-    return characters.some((character) => character.getPosition().equals(currentState.getMaze().getEndPosition()));
+    return characters.every((character) => character.getReachedGoadAt() !== null);
   }
 }

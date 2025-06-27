@@ -162,7 +162,7 @@ const Page = function Page({ params }: { params: Promise<{ id: string }> }) {
         <div className="flex flex-col gap-4 w-full">
           <section
             ref={mapContainerRef}
-            className="relative grow w-full h-full rounded-3xl bg-white/5 backdrop-blur-[20px] border border-white/10 shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]"
+            className="overflow-hidden relative grow w-full h-full rounded-3xl bg-white/5 backdrop-blur-[20px] border border-white/10 shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]"
           >
             <div className={twMerge(currentGame?.hasStarted() ? 'hidden' : 'flex', 'flex-col', 'h-full', 'w-full')}>
               {currentGame instanceof MazeBattleGameModel && myPlayerId && hostPlayerId && (
@@ -179,7 +179,7 @@ const Page = function Page({ params }: { params: Promise<{ id: string }> }) {
                 )}
             </section>
           </section>
-          <section className="flex justify-center gap-2">
+          <section className="flex justify-center gap-2 shrink-0">
             {currentGame && myPlayerId === hostPlayerId && !currentGame.hasStarted() && (
               <Button text="Start Game" onClick={handleStartGame} />
             )}

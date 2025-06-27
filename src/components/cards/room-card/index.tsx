@@ -35,7 +35,7 @@ export function RoomCard({ room, deleting = false, onDeleteClick = () => {} }: P
         <IconButton iconName="material-symbols:close-rounded" onClick={onDeleteClick} />
       </div>
       <div className={classnames('flex', 'flex-col', 'p-3', 'bg-white', 'bg-opacity-30', 'rounded-xl')}>
-        <Text color="text-stone-800" size="text-lg" weight="font-bold">
+        <Text size="text-lg" weight="font-bold">
           {room.getName()}
         </Text>
         <Text>{room.getEditedAtCopy()}</Text>

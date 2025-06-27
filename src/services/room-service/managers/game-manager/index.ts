@@ -49,11 +49,10 @@ export class GameManager {
     return this.currentGame;
   }
 
-  public updateCurrentGameState(gameState: GameStateVo) {
+  private updateCurrentGameState(gameState: GameStateVo) {
     const clonedCurrentGame = this.currentGame.clone();
     clonedCurrentGame.setState(gameState);
     this.currentGame = clonedCurrentGame;
-    this.publishCurrentGameUpdatedEvent(clonedCurrentGame);
   }
 
   public updateCurrentGame(game: GameModel) {
@@ -254,6 +253,8 @@ export class GameManager {
       const commandToExecute = commandsToExecute[i];
       this.addExecutedCommand(commandToExecute);
     }
+
+    this.publishCurrentGameUpdatedEvent(this.currentGame);
 
     return true;
   }

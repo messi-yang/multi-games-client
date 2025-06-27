@@ -11,30 +11,12 @@ type Props = {
 
 export function MazeBattleGameRoom({ myPlayerId, hostPlayerId, players }: Props) {
   return (
-    <div
-      className={twMerge(
-        'w-full',
-        'h-full',
-        'flex',
-        'flex-col',
-        'relative',
-        'rounded-3xl',
-        'bg-white/5',
-        'backdrop-blur-[20px]',
-        'border',
-        'border-white/10',
-        'shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]',
-        'overflow-auto'
-      )}
-    >
+    <div className={twMerge('w-full', 'h-full', 'flex', 'flex-col', 'relative', 'rounded-3xl', 'overflow-auto')}>
       <div className={twMerge('flex-1', 'p-5')}>
         <div className={twMerge('grid', 'grid-cols-[repeat(auto-fill,minmax(16rem,1fr))]', 'gap-4')}>
           {players.map((player) => {
             return (
-              <div
-                key={player.getId()}
-                className="h-16 flex items-center gap-2 bg-white/10 backdrop-blur-[20px] border border-white/10 rounded-2xl p-2 shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] hover:bg-white/20 transition-all duration-200"
-              >
+              <div key={player.getId()} className="h-16 flex items-center gap-2 rounded-2xl p-2">
                 {player.getId() === hostPlayerId && <Icon icon="mdi:crown" className="w-4 h-4 text-white/90" />}
                 <Text>{player.getName()}</Text>
                 {player.getId() === myPlayerId && <Text>(You)</Text>}

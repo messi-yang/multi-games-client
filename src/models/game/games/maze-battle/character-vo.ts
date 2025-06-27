@@ -1,15 +1,20 @@
+import { DateVo } from '@/models/global/date-vo';
 import { PositionJson, PositionVo } from './position-vo';
 
 export type CharacterJson = {
   id: string;
   name: string;
   position: PositionJson;
+  reachedGoadAt: string | null;
+  color: string;
 };
 
 type Props = {
   id: string;
   name: string;
   position: PositionVo;
+  reachedGoadAt: DateVo | null;
+  color: string;
 };
 
 export class CharacterVo {
@@ -19,10 +24,16 @@ export class CharacterVo {
 
   private position: PositionVo;
 
+  private reachedGoadAt: DateVo | null;
+
+  private color: string;
+
   private constructor(props: Props) {
     this.id = props.id;
     this.name = props.name;
     this.position = props.position;
+    this.reachedGoadAt = props.reachedGoadAt;
+    this.color = props.color;
   }
 
   static create(props: Props): CharacterVo {
@@ -30,15 +41,27 @@ export class CharacterVo {
   }
 
   static fromJson(json: CharacterJson): CharacterVo {
-    return new CharacterVo({ id: json.id, name: json.name, position: PositionVo.fromJson(json.position) });
+    return new CharacterVo({
+      id: json.id,
+      name: json.name,
+      position: PositionVo.fromJson(json.position),
+      reachedGoadAt: json.reachedGoadAt ? DateVo.parseString(json.reachedGoadAt) : null,
+      color: json.color,
+    });
   }
 
   public toJson(): CharacterJson {
-    return { id: this.id, name: this.name, position: this.position.toJson() };
+    return {
+      id: this.id,
+      name: this.name,
+      position: this.position.toJson(),
+      reachedGoadAt: this.reachedGoadAt ? this.reachedGoadAt.toString() : null,
+      color: this.color,
+    };
   }
 
   public getProps(): Props {
-    return { id: this.id, name: this.name, position: this.position };
+    return { id: this.id, name: this.name, position: this.position, reachedGoadAt: this.reachedGoadAt, color: this.color };
   }
 
   public getName(): string {
@@ -55,5 +78,17 @@ export class CharacterVo {
 
   public updatePosition(position: PositionVo): CharacterVo {
     return CharacterVo.create({ ...this.getProps(), position });
+  }
+
+  public getReachedGoadAt(): DateVo | null {
+    return this.reachedGoadAt;
+  }
+
+  public setReachedGoadAt(reachedGoadAt: DateVo): CharacterVo {
+    return CharacterVo.create({ ...this.getProps(), reachedGoadAt });
+  }
+
+  public getColor(): string {
+    return this.color;
   }
 }
