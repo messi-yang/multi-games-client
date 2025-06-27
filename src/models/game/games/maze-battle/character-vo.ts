@@ -47,7 +47,7 @@ export class CharacterVo {
       name: json.name,
       position: PositionVo.fromJson(json.position),
       reachedGoadAt: json.reachedGoadAt ? DateVo.parseString(json.reachedGoadAt) : null,
-      color: json.color.length === 6 ? json.color : getRandomColor(),
+      color: json.color.length === 7 ? json.color : getRandomColor(),
     });
   }
 
