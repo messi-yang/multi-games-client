@@ -99,8 +99,12 @@ export class RoomService {
     return this.playerManager.getOtherPlayers();
   }
 
-  public addMessage(message: MessageModel) {
-    this.messageManager.addMessage(message);
+  public addRemoteMessage(message: MessageModel) {
+    this.messageManager.addRemoteMessage(message);
+  }
+
+  public addLocalMessage(message: MessageModel) {
+    this.messageManager.addLocalMessage(message);
   }
 
   subscribe(eventName: 'LOCAL_COMMAND_EXECUTED', subscriber: EventHandlerSubscriber<CommandModel>): () => void;
@@ -110,6 +114,7 @@ export class RoomService {
   subscribe(eventName: 'HOST_PLAYER_ID_UPDATED', subscriber: EventHandlerSubscriber<string | null>): () => void;
   subscribe(eventName: 'MY_PLAYER_UPDATED', subscriber: EventHandlerSubscriber<PlayerModel>): () => void;
   subscribe(eventName: 'MESSAGE_ADDED', subscriber: EventHandlerSubscriber<MessageModel>): () => void;
+  subscribe(eventName: 'LOCAL_MESSAGE_ADDED', subscriber: EventHandlerSubscriber<MessageModel>): () => void;
   public subscribe(
     eventName:
       | 'LOCAL_COMMAND_EXECUTED'
@@ -118,7 +123,8 @@ export class RoomService {
       | 'PLAYERS_UPDATED'
       | 'HOST_PLAYER_ID_UPDATED'
       | 'MY_PLAYER_UPDATED'
-      | 'MESSAGE_ADDED',
+      | 'MESSAGE_ADDED'
+      | 'LOCAL_MESSAGE_ADDED',
     subscriber:
       | EventHandlerSubscriber<CommandModel>
       | EventHandlerSubscriber<GameModel>
@@ -141,6 +147,8 @@ export class RoomService {
       return this.playerManager.subscribeMyPlayerUpdatedEvent(subscriber as EventHandlerSubscriber<PlayerModel>);
     } else if (eventName === 'MESSAGE_ADDED') {
       return this.messageManager.subscribeMessageAddedEvent(subscriber as EventHandlerSubscriber<MessageModel>);
+    } else if (eventName === 'LOCAL_MESSAGE_ADDED') {
+      return this.messageManager.subscribeLocalMessageAddedEvent(subscriber as EventHandlerSubscriber<MessageModel>);
     } else {
       return () => {};
     }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback, useRef, KeyboardEventHandler, useContext, useState, use } from 'react';
+import { useEffect, useCallback, useRef, KeyboardEventHandler, useContext, useState, use, useMemo } from 'react';
 
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -58,7 +58,9 @@ const Page = function Page({ params }: { params: Promise<{ id: string }> }) {
     sendMessage,
   } = useContext(RoomServiceContext);
 
-  const isDisconnected = connectionStatus === 'DISCONNECTED';
+  const isWaiting = useMemo(() => connectionStatus === 'WAITING', [connectionStatus]);
+
+  const isDisconnected = useMemo(() => connectionStatus === 'DISCONNECTED', [connectionStatus]);
   useEffect(() => {
     if (!isDisconnected) return () => {};
 
@@ -71,19 +73,11 @@ const Page = function Page({ params }: { params: Promise<{ id: string }> }) {
     };
   }, [isDisconnected]);
 
-  useEffect(
-    function joinRoomOnInit() {
-      if (!roomId) {
-        return () => {};
-      }
-      joinRoom(roomId);
-
-      return () => {
-        leaveRoom();
-      };
-    },
-    [roomId]
-  );
+  useEffect(() => {
+    return () => {
+      leaveRoom();
+    };
+  }, [leaveRoom]);
 
   const goToDashboardRoomsPage = () => {
     router.push('/dashboard/rooms');
@@ -97,11 +91,18 @@ const Page = function Page({ params }: { params: Promise<{ id: string }> }) {
     }
   };
 
-  const handleRecconectModalConfirmClick = useCallback(() => {
+  const handleJoinRoom = useCallback(() => {
     if (roomId) {
       joinRoom(roomId);
     }
   }, [joinRoom, roomId]);
+
+  const handleRecconectModalConfirmClick = useCallback(() => {
+    if (roomId) {
+      leaveRoom();
+      joinRoom(roomId);
+    }
+  }, [leaveRoom, joinRoom, roomId]);
 
   const handleCommand = useCallback(
     (command: CommandModel) => {
@@ -129,6 +130,7 @@ const Page = function Page({ params }: { params: Promise<{ id: string }> }) {
 
   return (
     <main className="relative w-full h-screen flex flex-col bg-gradient-to-br from-[#4B79A1] to-[#283E51]">
+      <MessageModal opened={isWaiting} message="Join Room" buttonCopy="Join" onComfirm={handleJoinRoom} />
       <MessageModal
         opened={isDisconnected}
         message="You're disconnected to the room."

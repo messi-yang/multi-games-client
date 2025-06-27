@@ -14,6 +14,7 @@ export interface P2pConnection {
   getLocalDescription(): RTCSessionDescription | null;
   getIceCandidates(): RTCIceCandidate[];
   sendMessage(p2pEvent: P2pEvent): boolean;
+  getIsConnected(): boolean;
 }
 
 class P2pConnectionImpl implements P2pConnection {
@@ -21,6 +22,7 @@ class P2pConnectionImpl implements P2pConnection {
     private p2pConn: RTCPeerConnection,
     private iceCandidates: RTCIceCandidate[],
     private dataChannel: RTCDataChannel | null,
+    private isConnected: boolean,
     private onMessage: OnMessage,
     private onOpen: OnOpen,
     private onClose: OnClose
@@ -31,13 +33,17 @@ class P2pConnectionImpl implements P2pConnection {
       const dataChannel = this.p2pConn.createDataChannel('dataChannel');
       dataChannel.addEventListener('message', (evt: MessageEvent<string>) => {
         const p2pEvent = JSON.parse(evt.data) as P2pEvent;
-        // console.log('Receive via P2P', p2pEvent.name, p2pEvent);
+
+        console.log('p2p event received: ', p2pEvent.name, p2pEvent);
+
         this.onMessage(p2pEvent);
       });
       dataChannel.addEventListener('open', () => {
+        this.isConnected = true;
         this.onOpen();
       });
       dataChannel.addEventListener('close', () => {
+        this.isConnected = false;
         this.onClose();
       });
       this.dataChannel = dataChannel;
@@ -77,9 +83,11 @@ class P2pConnectionImpl implements P2pConnection {
         this.onMessage(p2pEvent);
       });
       this.dataChannel.addEventListener('open', () => {
+        this.isConnected = true;
         this.onOpen();
       });
       this.dataChannel.addEventListener('close', () => {
+        this.isConnected = false;
         this.onClose();
       });
     });
@@ -117,7 +125,7 @@ class P2pConnectionImpl implements P2pConnection {
    * @returns succeeded
    */
   public sendMessage(p2pEvent: P2pEvent): boolean {
-    console.log('sendMessage', p2pEvent.name, p2pEvent);
+    console.log('p2p event sent:', p2pEvent.name, p2pEvent);
 
     if (!this.dataChannel) return false;
     if (this.dataChannel?.readyState !== 'open') return false;
@@ -125,6 +133,10 @@ class P2pConnectionImpl implements P2pConnection {
     // console.log('Send via P2P', p2pEvent.name, p2pEvent);
     this.dataChannel.send(JSON.stringify(p2pEvent));
     return true;
+  }
+
+  public getIsConnected(): boolean {
+    return this.isConnected;
   }
 }
 
@@ -135,6 +147,7 @@ export const createP2pConnection = (options: { onMessage: OnMessage; onClose: On
     }),
     [],
     null,
+    false,
     options.onMessage,
     options.onOpen,
     options.onClose

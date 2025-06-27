@@ -70,7 +70,6 @@ export class RoomServiceApi {
     let pingServerInterval: NodeJS.Timer | null = null;
 
     const handleP2pMessage = (p2pEvent: P2pEvent) => {
-      console.log('p2p event received: ', p2pEvent.name, p2pEvent);
       if (p2pEvent.name === P2pEventNameEnum.CommandSent) {
         const command = parseCommandDto(p2pEvent.command);
         if (!command) return;
@@ -300,21 +299,24 @@ export class RoomServiceApi {
       const otherPlayerId = otherPlayer.getId();
       const p2pConnection = this.p2pConnectionMap.get(otherPlayerId);
 
-      if (p2pConnection) {
+      const commandSentClientEvent: CommandSentClientEvent = {
+        name: ClientEventNameEnum.CommandSent,
+        peerPlayerId: otherPlayerId,
+        command: commandDto,
+      };
+
+      if (p2pConnection && p2pConnection.getIsConnected()) {
         const p2pEvent: CommandSentP2pEvent = {
           name: P2pEventNameEnum.CommandSent,
           command: commandDto,
         };
 
-        const commandSentClientEvent: CommandSentClientEvent = {
-          name: ClientEventNameEnum.CommandSent,
-          peerPlayerId: otherPlayerId,
-          command: commandDto,
-        };
         const succeeded = p2pConnection.sendMessage(p2pEvent);
         if (!succeeded) {
           this.sendClientEvent(commandSentClientEvent);
         }
+      } else {
+        this.sendClientEvent(commandSentClientEvent);
       }
     });
   }

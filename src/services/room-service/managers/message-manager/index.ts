@@ -6,6 +6,8 @@ export class MessageManager {
 
   private messageAddedEventHandler = EventHandler.create<MessageModel>();
 
+  private localMessageAddedEventHandler = EventHandler.create<MessageModel>();
+
   private constructor() {
     this.messages = [];
   }
@@ -18,7 +20,13 @@ export class MessageManager {
     return this.messages;
   }
 
-  public addMessage(message: MessageModel): void {
+  public addLocalMessage(message: MessageModel): void {
+    this.messages.push(message);
+    this.publishMessageAddedEvent(message);
+    this.publishLocalMessageAddedEvent(message);
+  }
+
+  public addRemoteMessage(message: MessageModel): void {
     this.messages.push(message);
     this.publishMessageAddedEvent(message);
   }
@@ -29,5 +37,13 @@ export class MessageManager {
 
   private publishMessageAddedEvent(message: MessageModel): void {
     this.messageAddedEventHandler.publish(message);
+  }
+
+  public subscribeLocalMessageAddedEvent(subscriber: EventHandlerSubscriber<MessageModel>): () => void {
+    return this.localMessageAddedEventHandler.subscribe(subscriber);
+  }
+
+  private publishLocalMessageAddedEvent(message: MessageModel): void {
+    this.localMessageAddedEventHandler.publish(message);
   }
 }

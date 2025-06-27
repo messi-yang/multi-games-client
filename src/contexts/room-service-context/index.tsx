@@ -97,13 +97,6 @@ export function Provider({ children }: Props) {
     });
   }, [roomService]);
 
-  const leaveRoom = useCallback(() => {
-    roomApi.current?.disconnect();
-    roomApi.current = null;
-    setRoomService(null);
-    setConnectionStatus('WAITING');
-  }, []);
-
   const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
   const [myPlayer, setMyPlayer] = useState<PlayerModel | null>(null);
   useEffect(() => {
@@ -116,23 +109,24 @@ export function Provider({ children }: Props) {
 
   const sendMessage = useCallback(
     (message: string) => {
-      if (!roomApi.current || !roomService || !myPlayer) return;
+      if (!roomService || !myPlayer) return;
 
       const messageModel = MessageModel.create({
         playerName: myPlayer.getName(),
         content: message,
       });
-      roomService.addMessage(messageModel);
-
-      roomApi.current.sendMessage(
-        MessageModel.create({
-          playerName: myPlayer.getName(),
-          content: message,
-        })
-      );
+      roomService.addLocalMessage(messageModel);
     },
-    [roomApi, roomService, myPlayer]
+    [roomService, myPlayer]
   );
+
+  useEffect(() => {
+    if (!roomService) return () => {};
+    return roomService.subscribe('LOCAL_MESSAGE_ADDED', (newMessage) => {
+      if (!roomApi.current) return;
+      roomApi.current.sendMessage(newMessage);
+    });
+  }, [roomService, roomApi]);
 
   const [hostPlayerId, setHostPlayerId] = useState<string | null>(null);
 
@@ -144,11 +138,6 @@ export function Provider({ children }: Props) {
   }, [roomService]);
 
   const joinRoom = useCallback((roomId: string) => {
-    if (roomApi.current) {
-      leaveRoom();
-      return;
-    }
-
     let newRoomService: RoomService | null = null;
     const newRoomServiceApi = RoomServiceApi.create(roomId, {
       onRoomJoined: (_roomService) => {
@@ -181,7 +170,7 @@ export function Provider({ children }: Props) {
       },
       onMessageReceived: (message) => {
         if (!newRoomService) return;
-        newRoomService.addMessage(message);
+        newRoomService.addRemoteMessage(message);
       },
       onErrored: (message) => {
         notificationEventDispatcher.publishErrorTriggeredEvent(message);
@@ -222,6 +211,20 @@ export function Provider({ children }: Props) {
       roomApi.current.sendCommand(command);
     });
   }, [roomService]);
+
+  const leaveRoom = useCallback(() => {
+    roomApi.current?.disconnect();
+    roomApi.current = null;
+    setRoomService(null);
+    setCurrentGame(null);
+    setCurrentGameState(null);
+    setMessages([]);
+    setPlayers([]);
+    setMyPlayerId(null);
+    setMyPlayer(null);
+    setHostPlayerId(null);
+    setConnectionStatus('WAITING');
+  }, []);
 
   const context = {
     roomService,
