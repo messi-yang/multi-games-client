@@ -1,5 +1,6 @@
 import { DateVo } from '@/models/global/date-vo';
 import { PositionJson, PositionVo } from './position-vo';
+import { ItemJson, ItemVo } from './item-vo';
 
 export type CharacterJson = {
   id: string;
@@ -7,6 +8,8 @@ export type CharacterJson = {
   position: PositionJson;
   reachedGoadAt: string | null;
   color: string;
+  heldItems: ItemJson[];
+  reversed: boolean;
 };
 
 type Props = {
@@ -15,6 +18,8 @@ type Props = {
   position: PositionVo;
   reachedGoadAt: DateVo | null;
   color: string;
+  heldItems: ItemVo[];
+  reversed: boolean;
 };
 
 export class CharacterVo {
@@ -28,12 +33,18 @@ export class CharacterVo {
 
   private color: string;
 
+  private heldItems: ItemVo[];
+
+  private reversed: boolean;
+
   private constructor(props: Props) {
     this.id = props.id;
     this.name = props.name;
     this.position = props.position;
     this.reachedGoadAt = props.reachedGoadAt;
     this.color = props.color;
+    this.heldItems = props.heldItems;
+    this.reversed = props.reversed;
   }
 
   static create(props: Props): CharacterVo {
@@ -47,6 +58,8 @@ export class CharacterVo {
       position: PositionVo.fromJson(json.position),
       reachedGoadAt: json.reachedGoadAt ? DateVo.parseString(json.reachedGoadAt) : null,
       color: json.color,
+      heldItems: json.heldItems.map((item) => ItemVo.fromJson(item)),
+      reversed: json.reversed,
     });
   }
 
@@ -57,11 +70,21 @@ export class CharacterVo {
       position: this.position.toJson(),
       reachedGoadAt: this.reachedGoadAt ? this.reachedGoadAt.toString() : null,
       color: this.color,
+      heldItems: this.heldItems.map((item) => item.toJson()),
+      reversed: this.reversed,
     };
   }
 
   public getProps(): Props {
-    return { id: this.id, name: this.name, position: this.position, reachedGoadAt: this.reachedGoadAt, color: this.color };
+    return {
+      id: this.id,
+      name: this.name,
+      position: this.position,
+      reachedGoadAt: this.reachedGoadAt,
+      color: this.color,
+      heldItems: this.heldItems,
+      reversed: this.reversed,
+    };
   }
 
   public getName(): string {
@@ -90,5 +113,32 @@ export class CharacterVo {
 
   public getColor(): string {
     return this.color;
+  }
+
+  public getHeldItems(): ItemVo[] {
+    return this.heldItems;
+  }
+
+  public getHeldItem(itemIndex: number): ItemVo | null {
+    return this.heldItems[itemIndex] || null;
+  }
+
+  public addHeldItem(item: ItemVo): CharacterVo {
+    return CharacterVo.create({ ...this.getProps(), heldItems: [...this.heldItems, item] });
+  }
+
+  public removeHeldItem(itemIndex: number): CharacterVo {
+    return CharacterVo.create({
+      ...this.getProps(),
+      heldItems: this.heldItems.filter((_, index) => index !== itemIndex),
+    });
+  }
+
+  public isReversed(): boolean {
+    return this.reversed;
+  }
+
+  public setReversed(reversed: boolean): CharacterVo {
+    return CharacterVo.create({ ...this.getProps(), reversed });
   }
 }

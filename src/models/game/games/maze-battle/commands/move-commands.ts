@@ -6,6 +6,7 @@ import { MazeBattleGameCommandNameEnum } from '../game-command-name-enum';
 import { generateUuidV4 } from '@/utils/uuid';
 import { WallVo } from '../wall-vo';
 import { DirectionEnum } from '../direction-enum';
+import { reverseDirection } from '../utils';
 
 export type MazeBattleGameMoveCommandPayload = {
   direction: DirectionEnum;
@@ -59,7 +60,12 @@ export class MazeBattleGameMoveCommand extends CommandModel<MazeBattleGameStateV
 
     let newPosition = character.getPosition().shift(0, 0);
 
-    switch (this.direction) {
+    let { direction } = this;
+    if (character.isReversed()) {
+      direction = reverseDirection(direction);
+    }
+
+    switch (direction) {
       case DirectionEnum.Left:
         newPosition = newPosition.shift(-1, 0);
         break;
@@ -86,6 +92,13 @@ export class MazeBattleGameMoveCommand extends CommandModel<MazeBattleGameStateV
     if (newPosition.equals(maze.getEndPosition())) {
       newCharacter = newCharacter.setReachedGoadAt(DateVo.now());
     }
+
+    const itemBox = gameState.getItemBoxAtPosition(newPosition);
+    if (itemBox && newCharacter.getHeldItems().length < 2) {
+      newCharacter = newCharacter.addHeldItem(itemBox.getItem());
+      gameState = gameState.removeItemBoxAtPosition(newPosition);
+    }
+
     return gameState.updateCharacter(newCharacter);
   }
 

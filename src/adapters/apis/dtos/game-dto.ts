@@ -15,7 +15,12 @@ type GameDto = {
 
 function parseGameDto(dto: GameDto): MazeBattleGameModel {
   if (dto.name === GameNameEnum.MazeBattle) {
-    const state = dto.state ? MazeBattleGameStateVo.fromJson(dto.state as MazeBattleGameStateJson) : null;
+    let state: MazeBattleGameStateVo | null = null;
+    try {
+      state = dto.state ? MazeBattleGameStateVo.fromJson(dto.state as MazeBattleGameStateJson) : null;
+    } catch (error) {
+      console.error('Error parsing game state, but we still can create game model', error);
+    }
 
     return MazeBattleGameModel.create({
       id: dto.id,

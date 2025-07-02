@@ -1,15 +1,19 @@
 import { GameStateVo } from '../../game-state-vo';
 import { CharacterJson, CharacterVo } from './character-vo';
 import { MazeJson, MazeVo } from './maze-vo';
+import { ItemBoxJson, ItemBoxVo } from './item-box-vo';
+import { PositionVo } from './position-vo';
 
 export type MazeBattleGameStateJson = {
   maze: MazeJson;
   characters: CharacterJson[];
+  itemBoxes: ItemBoxJson[];
 };
 
 type Props = {
   maze: MazeVo;
   characters: CharacterVo[];
+  itemBoxes: ItemBoxVo[];
 };
 
 export class MazeBattleGameStateVo extends GameStateVo<MazeBattleGameStateJson> {
@@ -17,10 +21,13 @@ export class MazeBattleGameStateVo extends GameStateVo<MazeBattleGameStateJson> 
 
   private characters: CharacterVo[];
 
+  private itemBoxes: ItemBoxVo[];
+
   constructor(props: Props) {
     super();
     this.maze = props.maze;
     this.characters = props.characters;
+    this.itemBoxes = props.itemBoxes;
   }
 
   static create(props: Props): MazeBattleGameStateVo {
@@ -29,12 +36,17 @@ export class MazeBattleGameStateVo extends GameStateVo<MazeBattleGameStateJson> 
 
   static fromJson(stateJson: MazeBattleGameStateJson | null): MazeBattleGameStateVo {
     if (!stateJson) {
-      return MazeBattleGameStateVo.create({ maze: MazeVo.create({ width: 15, height: 15 }), characters: [] });
+      return MazeBattleGameStateVo.create({
+        maze: MazeVo.create({ width: 15, height: 15 }),
+        characters: [],
+        itemBoxes: [],
+      });
     }
 
     return new MazeBattleGameStateVo({
       maze: MazeVo.fromJson(stateJson.maze),
       characters: stateJson.characters.map((character) => CharacterVo.fromJson(character)),
+      itemBoxes: stateJson.itemBoxes.map((itemBox) => ItemBoxVo.fromJson(itemBox)),
     });
   }
 
@@ -42,6 +54,15 @@ export class MazeBattleGameStateVo extends GameStateVo<MazeBattleGameStateJson> 
     return {
       maze: this.maze.toJson(),
       characters: this.characters.map((character) => character.toJson()),
+      itemBoxes: this.itemBoxes.map((itemBox) => itemBox.toJson()),
+    };
+  }
+
+  public getProps(): Props {
+    return {
+      maze: this.maze,
+      characters: this.characters,
+      itemBoxes: this.itemBoxes,
     };
   }
 
@@ -63,8 +84,23 @@ export class MazeBattleGameStateVo extends GameStateVo<MazeBattleGameStateJson> 
 
   public updateCharacter(character: CharacterVo): MazeBattleGameStateVo {
     return MazeBattleGameStateVo.create({
-      maze: this.maze,
+      ...this.getProps(),
       characters: this.characters.map((c) => (c.getId() === character.getId() ? character : c)),
+    });
+  }
+
+  public getItemBoxAtPosition(position: PositionVo): ItemBoxVo | null {
+    return this.itemBoxes.find((itemBox) => itemBox.getPosition().equals(position)) ?? null;
+  }
+
+  public getItemBoxes(): ItemBoxVo[] {
+    return this.itemBoxes;
+  }
+
+  public removeItemBoxAtPosition(position: PositionVo): MazeBattleGameStateVo {
+    return MazeBattleGameStateVo.create({
+      ...this.getProps(),
+      itemBoxes: this.itemBoxes.filter((itemBox) => !itemBox.getPosition().equals(position)),
     });
   }
 

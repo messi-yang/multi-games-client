@@ -46,6 +46,14 @@ export class MazeVo {
     });
   }
 
+  public toJson(): MazeJson {
+    return {
+      width: this.width,
+      height: this.height,
+      cells: this.cells.map((row) => row.map((cell) => (cell instanceof WallVo ? 1 : 0))),
+    };
+  }
+
   static create(props: CreateProps): MazeVo {
     const cells: (WallVo | RoadVo)[][] = [];
 
@@ -135,14 +143,6 @@ export class MazeVo {
     return new MazeVo(props);
   }
 
-  public toJson(): MazeJson {
-    return {
-      width: this.width,
-      height: this.height,
-      cells: this.cells.map((row) => row.map((cell) => (cell instanceof WallVo ? 1 : 0))),
-    };
-  }
-
   public getStartPosition(): PositionVo {
     return PositionVo.create({ x: 0, y: 1 });
   }
@@ -176,5 +176,25 @@ export class MazeVo {
         callback(PositionVo.create({ x, y }), this.cells[x][y]);
       }
     }
+  }
+
+  public getRandomRoadPosition(): PositionVo[] {
+    const roadPositions: PositionVo[] = [];
+    this.iterateCells((position, cell) => {
+      if (cell instanceof RoadVo) {
+        roadPositions.push(position);
+      }
+    });
+
+    const randomRoadPositions: PositionVo[] = [];
+    while (randomRoadPositions.length < 10) {
+      const randomIndex = Math.floor(Math.random() * roadPositions.length);
+      const randomRoadPosition = roadPositions[randomIndex];
+      if (randomRoadPositions.some((position) => position.equals(randomRoadPosition))) {
+        continue;
+      }
+      randomRoadPositions.push(randomRoadPosition);
+    }
+    return randomRoadPositions;
   }
 }

@@ -101,7 +101,8 @@ export class GameManager {
   private addExecutedCommand(command: CommandModel) {
     const currentGameState = this.currentGame.getState();
     if (!currentGameState) {
-      throw new Error('Current game state is null');
+      // throw new Error('Current game state is null');
+      return;
     }
     const newGameState = command.execute(currentGameState);
 

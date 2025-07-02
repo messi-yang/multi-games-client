@@ -3,15 +3,17 @@ import { Application, Sprite, Container, Assets, Texture, Graphics } from 'pixi.
 import { CharacterVo } from '@/models/game/games/maze-battle/character-vo';
 import { MazeVo } from '@/models/game/games/maze-battle/maze-vo';
 import { WallVo } from '@/models/game/games/maze-battle/wall-vo';
+import { ItemBoxVo } from '@/models/game/games/maze-battle/item-box-vo';
 
 const CELL_SIZE = 12;
 
 type Props = {
   maze: MazeVo;
   characters: CharacterVo[];
+  itemBoxes: ItemBoxVo[];
 };
 
-export function MazeCanvas({ maze, characters }: Props) {
+export function MazeCanvas({ maze, characters, itemBoxes }: Props) {
   const [appContainerElem, setAppContainerElem] = useState<HTMLDivElement | null>(null);
   const [application, setApplication] = useState<Application | null>(null);
 
@@ -49,6 +51,14 @@ export function MazeCanvas({ maze, characters }: Props) {
       setDirtAsset(asset);
     });
   }, [application, dirtAsset]);
+
+  const [itemBoxAsset, setItemBoxAsset] = useState<Texture | null>(null);
+  useEffect(() => {
+    if (itemBoxAsset) return;
+    Assets.load<Texture>('/assets/games/maze-battle/item-box.png').then((asset) => {
+      setItemBoxAsset(asset);
+    });
+  }, [application, itemBoxAsset]);
 
   const [mazeContainer, setMazeContainer] = useState<Container | null>(null);
   useEffect(() => {
@@ -102,6 +112,29 @@ export function MazeCanvas({ maze, characters }: Props) {
       application.stage.removeChild(newCharactersContainer);
     };
   }, [application, characters, mazeContainer]);
+
+  useEffect(() => {
+    if (!application) return () => {};
+    if (!itemBoxAsset) return () => {};
+    if (!mazeContainer) return () => {};
+
+    const newItemBoxesContainer = new Container();
+
+    itemBoxes.forEach((itemBox) => {
+      const itemBoxSprite = new Sprite(itemBoxAsset);
+      itemBoxSprite.x = itemBox.getPosition().getX() * CELL_SIZE;
+      itemBoxSprite.y = itemBox.getPosition().getY() * CELL_SIZE;
+      itemBoxSprite.width = CELL_SIZE;
+      itemBoxSprite.height = CELL_SIZE;
+      newItemBoxesContainer.addChild(itemBoxSprite);
+    });
+
+    application.stage.addChild(newItemBoxesContainer);
+
+    return () => {
+      application.stage.removeChild(newItemBoxesContainer);
+    };
+  }, [application, itemBoxes, itemBoxAsset, mazeContainer]);
 
   return <div className="w-full h-full flex items-center justify-center" ref={setAppContainerElem} />;
 }

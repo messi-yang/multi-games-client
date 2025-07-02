@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import classnames from 'classnames';
 import { MazeBattleGameModel } from '@/models/game/games/maze-battle/game-model';
 import { CommandModel } from '@/models/game/command-model';
@@ -8,6 +8,10 @@ import { MazeBattleGameMoveCommand } from '@/models/game/games/maze-battle/comma
 import { useHotKeys } from '@/hooks/use-hot-keys';
 import { DirectionEnum } from '@/models/game/games/maze-battle/direction-enum';
 import { Text } from '@/components/texts/text';
+import { MazeBattleGameCharacterCard } from './character-card';
+import { ItemNameEnum } from '@/models/game/games/maze-battle/item-name-enum';
+import { MazeBattleGameSwitchPositionCommand } from '@/models/game/games/maze-battle/commands/switch-position-command';
+import { MazeBattleGameReverseDirectionCommand } from '@/models/game/games/maze-battle/commands/reverse-direction-command';
 
 type Props = {
   myPlayerId: string;
@@ -23,7 +27,43 @@ export function MazeBattleGameBoard({ myPlayerId, game, gameState, onCommand }: 
 
   const characters = useMemo(() => gameState.getCharacters(), [gameState]);
 
+  const sortedCharacters = useMemo(() => {
+    return characters.sort((a, b) => {
+      if (a.getReachedGoadAt() && !b.getReachedGoadAt()) return -1;
+      if (!a.getReachedGoadAt() && b.getReachedGoadAt()) return 1;
+      return 0;
+    });
+  }, [characters]);
+
+  const myCharacter = useMemo(() => characters.find((character) => character.getId() === myPlayerId) || null, [characters, myPlayerId]);
+
+  const itemBoxes = useMemo(() => gameState.getItemBoxes(), [gameState]);
+
   const directionRef = useRef<DirectionEnum | null>(null);
+
+  const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!selectedCharacterId && characters.length > 0) {
+      setSelectedCharacterId(characters[0].getId());
+    } else if (selectedCharacterId && !characters.some((character) => character.getId() === selectedCharacterId)) {
+      setSelectedCharacterId(null);
+    }
+  }, [selectedCharacterId, characters]);
+
+  const selectNextCharacter = useCallback(() => {
+    if (!selectedCharacterId || characters.length === 0) return;
+    const currentIndex = characters.findIndex((character) => character.getId() === selectedCharacterId);
+    const nextIndex = (currentIndex + 1) % characters.length;
+    setSelectedCharacterId(characters[nextIndex].getId());
+  }, [selectedCharacterId, characters]);
+
+  const handleSpaceKeyDown = useCallback(() => {
+    selectNextCharacter();
+  }, [selectNextCharacter]);
+
+  useHotKeys(['Space'], {
+    onKeyDown: handleSpaceKeyDown,
+  });
 
   const move = useCallback(
     (dir: 'left' | 'right' | 'up' | 'down') => {
@@ -81,29 +121,66 @@ export function MazeBattleGameBoard({ myPlayerId, game, gameState, onCommand }: 
     };
   }, [move]);
 
+  const useItem = useCallback(
+    (itemIndex: number) => {
+      if (!selectedCharacterId || !myCharacter) return;
+      const item = myCharacter.getHeldItem(itemIndex);
+      if (!item) return;
+
+      if (item.getName() === ItemNameEnum.PositionSwitcher) {
+        onCommand(
+          MazeBattleGameSwitchPositionCommand.create({
+            gameId,
+            playerId: myPlayerId,
+            characterId: myCharacter.getId(),
+            itemIndex,
+            targetCharacterId: selectedCharacterId,
+          })
+        );
+      } else if (item.getName() === ItemNameEnum.DirectionReverser) {
+        onCommand(
+          MazeBattleGameReverseDirectionCommand.create({
+            gameId,
+            playerId: myPlayerId,
+            characterId: myCharacter.getId(),
+            itemIndex,
+            targetCharacterId: selectedCharacterId,
+          })
+        );
+      }
+    },
+    [selectedCharacterId, myCharacter, gameId, myPlayerId, onCommand]
+  );
+
+  const handleUseItemKeyDown = useCallback(
+    (key: string) => {
+      if (key === 'KeyZ') {
+        useItem(0);
+      } else if (key === 'KeyX') {
+        useItem(1);
+      }
+    },
+    [useItem]
+  );
+
+  useHotKeys(['KeyZ', 'KeyX'], {
+    onKeyDown: handleUseItemKeyDown,
+  });
+
   return (
-    <div className={classnames('w-full', 'h-full', 'relative', 'overflow-hidden', 'flex', 'flex-row')}>
-      <div className="w-40 p-4 flex flex-col gap-4">
+    <div className={classnames('w-full', 'h-full', 'relative', 'overflow-hidden', 'flex', 'flex-row', 'p-4', 'gap-4')}>
+      <div>
+        <MazeCanvas maze={maze} characters={characters} itemBoxes={itemBoxes} />
+      </div>
+      <div className="grow flex flex-col gap-4">
         <Text>Characters</Text>
         <div className="flex flex-col gap-2">
-          {characters.map((character) => (
-            <div key={character.getId()} className="flex flex-row gap-2 items-center">
-              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: character.getColor() }} />
-              <Text>{character.getName()}</Text>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="flex-1 w-full">
-        <MazeCanvas maze={maze} characters={characters} />
-      </div>
-      <div className="w-40 p-4 flex flex-col gap-4">
-        <Text>Winners</Text>
-        <div className="flex flex-col gap-2">
-          {gameState.getWinners().map((winner, winnerIndex) => (
-            <Text key={winner.getId()}>
-              {winnerIndex + 1}. {winner.getName()}
-            </Text>
+          {sortedCharacters.map((character) => (
+            <MazeBattleGameCharacterCard
+              key={character.getId()}
+              character={character}
+              selected={character.getId() === selectedCharacterId}
+            />
           ))}
         </div>
       </div>

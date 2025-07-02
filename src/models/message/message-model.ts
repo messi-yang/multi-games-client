@@ -3,20 +3,20 @@ import { DateVo } from '../global/date-vo';
 
 type Props = {
   id: string;
-  playerName: string;
+  playerName: string | null;
   content: string;
   createdAt: DateVo;
 };
 
 type CreateProps = {
-  playerName: string;
+  playerName: string | null;
   content: string;
 };
 
 export class MessageModel {
   private id: string;
 
-  private playerName: string;
+  private playerName: string | null;
 
   private content: string;
 
@@ -46,7 +46,7 @@ export class MessageModel {
     return this.id;
   }
 
-  public getPlayerName(): string {
+  public getPlayerName(): string | null {
     return this.playerName;
   }
 

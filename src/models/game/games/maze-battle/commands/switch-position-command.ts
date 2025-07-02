@@ -1,0 +1,108 @@
+import { DateVo } from '@/models/global/date-vo';
+import { CommandJson } from '../../../command-json';
+import { CommandModel } from '../../../command-model';
+import { MazeBattleGameStateVo } from '../game-state-vo';
+import { MazeBattleGameCommandNameEnum } from '../game-command-name-enum';
+import { generateUuidV4 } from '@/utils/uuid';
+import { ItemNameEnum } from '../item-name-enum';
+
+export type MazeBattleGameSwitchPositionCommandPayload = {
+  characterId: string;
+  itemIndex: number;
+  targetCharacterId: string;
+};
+
+type CreateProps = {
+  gameId: string;
+  playerId: string;
+  characterId: string;
+  itemIndex: number;
+  targetCharacterId: string;
+};
+
+type Props = {
+  id: string;
+  gameId: string;
+  playerId: string;
+  executedAt: DateVo;
+  characterId: string;
+  itemIndex: number;
+  targetCharacterId: string;
+};
+
+export class MazeBattleGameSwitchPositionCommand extends CommandModel<MazeBattleGameStateVo> {
+  private characterId: string;
+
+  private itemIndex: number;
+
+  private targetCharacterId: string;
+
+  constructor(props: Props) {
+    super({
+      id: props.id,
+      gameId: props.gameId,
+      playerId: props.playerId,
+      name: MazeBattleGameCommandNameEnum.SwitchPosition,
+      executedAt: props.executedAt,
+    });
+    this.characterId = props.characterId;
+    this.itemIndex = props.itemIndex;
+    this.targetCharacterId = props.targetCharacterId;
+  }
+
+  static create(props: CreateProps): MazeBattleGameSwitchPositionCommand {
+    return new MazeBattleGameSwitchPositionCommand({
+      ...props,
+      id: generateUuidV4(),
+      executedAt: DateVo.now(),
+    });
+  }
+
+  static load(props: Props): MazeBattleGameSwitchPositionCommand {
+    return new MazeBattleGameSwitchPositionCommand(props);
+  }
+
+  public execute(gameState: MazeBattleGameStateVo): MazeBattleGameStateVo {
+    const character = gameState.getCharacter(this.playerId);
+    if (!character) {
+      return gameState;
+    }
+
+    const targetCharacter = gameState.getCharacter(this.targetCharacterId);
+    if (!targetCharacter) {
+      return gameState;
+    }
+
+    const item = character.getHeldItem(this.itemIndex);
+    if (!item || item.getName() !== ItemNameEnum.PositionSwitcher) {
+      return gameState;
+    }
+
+    const characterPosition = character.getPosition();
+    let updatedCharacter = character.removeHeldItem(this.itemIndex);
+    updatedCharacter = updatedCharacter.updatePosition(targetCharacter.getPosition());
+
+    const updatedTargetCharacter = targetCharacter.updatePosition(characterPosition);
+
+    return gameState.updateCharacter(updatedCharacter).updateCharacter(updatedTargetCharacter);
+  }
+
+  public getPayload(): MazeBattleGameSwitchPositionCommandPayload {
+    return {
+      characterId: this.characterId,
+      itemIndex: this.itemIndex,
+      targetCharacterId: this.targetCharacterId,
+    };
+  }
+
+  public toJson(): CommandJson {
+    return {
+      id: this.id,
+      gameId: this.gameId,
+      playerId: this.playerId,
+      timestamp: this.executedAt.toTimestamp(),
+      name: this.name,
+      payload: this.getPayload(),
+    };
+  }
+}

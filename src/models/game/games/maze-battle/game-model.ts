@@ -6,6 +6,8 @@ import { MazeBattleGameStateVo } from './game-state-vo';
 import { CharacterVo } from './character-vo';
 import { MazeVo } from './maze-vo';
 import { getRandomColor } from './utils';
+import { ItemVo } from './item-vo';
+import { ItemBoxVo } from './item-box-vo';
 
 type Props = {
   id: string;
@@ -50,10 +52,22 @@ export class MazeBattleGameModel extends GameModel<MazeBattleGameStateVo> {
           position: maze.getStartPosition(),
           reachedGoadAt: null,
           color: getRandomColor(),
+          heldItems: [],
+          reversed: false,
         })
       );
     }
-    return MazeBattleGameStateVo.create({ maze, characters });
+
+    const randomRoadPositions = maze.getRandomRoadPosition();
+    const itemBoxes: ItemBoxVo[] = [];
+    for (let i = 0; i < randomRoadPositions.length; i += 1) {
+      const item = ItemVo.createRandom();
+      const position = randomRoadPositions[i];
+      const itemBox = ItemBoxVo.create({ item, position });
+      itemBoxes.push(itemBox);
+    }
+
+    return MazeBattleGameStateVo.create({ maze, characters, itemBoxes });
   }
 
   public isPlayerInGame(playerId: string): boolean {
