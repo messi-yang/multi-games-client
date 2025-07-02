@@ -17,9 +17,10 @@ function ItemIcon({ itemName }: { itemName: ItemNameEnum }) {
 type Props = {
   character: CharacterVo;
   selected: boolean;
+  isMyCharacter: boolean;
 };
 
-export function MazeBattleGameCharacterCard({ character, selected }: Props) {
+export function MazeBattleGameCharacterCard({ character, selected, isMyCharacter }: Props) {
   const firstHeldItem = useMemo(() => character.getHeldItems()[0], [character]);
   const secondHeldItem = useMemo(() => character.getHeldItems()[1], [character]);
 
@@ -29,7 +30,7 @@ export function MazeBattleGameCharacterCard({ character, selected }: Props) {
     >
       <div className="w-4 h-4 rounded-full" style={{ backgroundColor: character.getColor() }} />
       {character.getReachedGoadAt() && <Icon icon="material-symbols:trophy" className="w-4 h-4 text-yellow-500" />}
-      <Text>{character.getName()}</Text>
+      <Text>{`${isMyCharacter ? '(YOU)' : ''} ${character.getName()}`}</Text>
       <div className="flex flex-row gap-2">
         {firstHeldItem && (
           <div className="w-6 h-6 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center">

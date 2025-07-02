@@ -73,12 +73,17 @@ export class MazeBattleGameReverseDirectionCommand extends CommandModel<MazeBatt
       return gameState;
     }
 
+    if (character.getId() === targetCharacter.getId()) {
+      return gameState;
+    }
+
     const item = character.getHeldItem(this.itemIndex);
     if (!item || item.getName() !== ItemNameEnum.DirectionReverser) {
       return gameState;
     }
 
     const updatedCharacter = character.removeHeldItem(this.itemIndex);
+
     const updatedTargetCharacter = targetCharacter.setReversed(!targetCharacter.isReversed());
 
     return gameState.updateCharacter(updatedCharacter).updateCharacter(updatedTargetCharacter);

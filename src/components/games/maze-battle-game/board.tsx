@@ -35,7 +35,14 @@ export function MazeBattleGameBoard({ myPlayerId, game, gameState, onCommand }: 
     });
   }, [characters]);
 
-  const myCharacter = useMemo(() => characters.find((character) => character.getId() === myPlayerId) || null, [characters, myPlayerId]);
+  const myCharacterId = useMemo(() => myPlayerId, [myPlayerId]);
+
+  const myCharacter = useMemo(
+    () => characters.find((character) => character.getId() === myCharacterId) || null,
+    [characters, myCharacterId]
+  );
+
+  const otherCharacters = useMemo(() => characters.filter((character) => character.getId() !== myCharacterId), [characters, myCharacterId]);
 
   const itemBoxes = useMemo(() => gameState.getItemBoxes(), [gameState]);
 
@@ -43,19 +50,19 @@ export function MazeBattleGameBoard({ myPlayerId, game, gameState, onCommand }: 
 
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
   useEffect(() => {
-    if (!selectedCharacterId && characters.length > 0) {
-      setSelectedCharacterId(characters[0].getId());
-    } else if (selectedCharacterId && !characters.some((character) => character.getId() === selectedCharacterId)) {
+    if (!selectedCharacterId && otherCharacters.length > 0) {
+      setSelectedCharacterId(otherCharacters[0].getId());
+    } else if (selectedCharacterId && !otherCharacters.some((character) => character.getId() === selectedCharacterId)) {
       setSelectedCharacterId(null);
     }
-  }, [selectedCharacterId, characters]);
+  }, [selectedCharacterId, otherCharacters]);
 
   const selectNextCharacter = useCallback(() => {
-    if (!selectedCharacterId || characters.length === 0) return;
-    const currentIndex = characters.findIndex((character) => character.getId() === selectedCharacterId);
-    const nextIndex = (currentIndex + 1) % characters.length;
-    setSelectedCharacterId(characters[nextIndex].getId());
-  }, [selectedCharacterId, characters]);
+    if (!selectedCharacterId || otherCharacters.length === 0) return;
+    const currentIndex = otherCharacters.findIndex((character) => character.getId() === selectedCharacterId);
+    const nextIndex = (currentIndex + 1) % otherCharacters.length;
+    setSelectedCharacterId(otherCharacters[nextIndex].getId());
+  }, [selectedCharacterId, otherCharacters]);
 
   const handleSpaceKeyDown = useCallback(() => {
     selectNextCharacter();
@@ -180,6 +187,7 @@ export function MazeBattleGameBoard({ myPlayerId, game, gameState, onCommand }: 
               key={character.getId()}
               character={character}
               selected={character.getId() === selectedCharacterId}
+              isMyCharacter={myCharacterId === character.getId()}
             />
           ))}
         </div>

@@ -73,6 +73,10 @@ export class MazeBattleGameSwitchPositionCommand extends CommandModel<MazeBattle
       return gameState;
     }
 
+    if (character.getId() === targetCharacter.getId()) {
+      return gameState;
+    }
+
     const item = character.getHeldItem(this.itemIndex);
     if (!item || item.getName() !== ItemNameEnum.PositionSwitcher) {
       return gameState;
