@@ -19,6 +19,7 @@ import { MazeBattleGameRoom } from '@/components/games/maze-battle-game/room';
 import { MazeBattleGameStateVo } from '@/models/game/games/maze-battle/game-state-vo';
 import { ChatBox } from '@/components/boxes/chat-box';
 import { PlayersBox } from '@/components/boxes/players-box';
+import { JoinRoomModal } from '@/components/modals/join-room-modal';
 
 const Page = function Page({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -91,18 +92,18 @@ const Page = function Page({ params }: { params: Promise<{ id: string }> }) {
     }
   };
 
-  const handleJoinRoom = useCallback(() => {
-    if (roomId) {
-      joinRoom(roomId);
-    }
-  }, [joinRoom, roomId]);
+  const handleJoinRoom = useCallback(
+    (playerName: string | null) => {
+      if (roomId) {
+        joinRoom(roomId, playerName);
+      }
+    },
+    [joinRoom, roomId]
+  );
 
-  const handleRecconectModalConfirmClick = useCallback(() => {
-    if (roomId) {
-      leaveRoom();
-      joinRoom(roomId);
-    }
-  }, [leaveRoom, joinRoom, roomId]);
+  const handleRefresh = useCallback(() => {
+    window.location.reload();
+  }, [leaveRoom]);
 
   const handleCommand = useCallback(
     (command: CommandModel) => {
@@ -130,13 +131,8 @@ const Page = function Page({ params }: { params: Promise<{ id: string }> }) {
 
   return (
     <main className="relative w-full h-screen flex flex-col bg-gradient-to-br from-[#4B79A1] to-[#283E51]">
-      <MessageModal opened={isWaiting} message="Join Room" buttonCopy="Join" onComfirm={handleJoinRoom} />
-      <MessageModal
-        opened={isDisconnected}
-        message="You're disconnected to the room."
-        buttonCopy="Reconnect"
-        onComfirm={handleRecconectModalConfirmClick}
-      />
+      <JoinRoomModal opened={isWaiting} isSignedIn={isSingedIn} onComfirm={handleJoinRoom} />
+      <MessageModal opened={isDisconnected} message="You're disconnected to the room." buttonCopy="Refresh" onComfirm={handleRefresh} />
       {roomService && (
         <ShareRoomModal
           opened={isShareRoomModalVisible}

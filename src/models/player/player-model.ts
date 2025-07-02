@@ -62,6 +62,10 @@ export class PlayerModel {
     return this.id;
   }
 
+  public hasAccount(): boolean {
+    return !!this.userId;
+  }
+
   public getUserId(): string {
     return this.userId;
   }

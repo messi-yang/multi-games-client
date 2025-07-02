@@ -19,7 +19,7 @@ type ContextValue = {
   hostPlayerId: string | null;
   players: PlayerModel[];
   messages: MessageModel[];
-  joinRoom: (roomId: string) => void;
+  joinRoom: (roomId: string, playerName: string | null) => void;
   startGame: () => void;
   setupNewGame: (gameName: string) => void;
   leaveRoom: () => void;
@@ -137,9 +137,9 @@ export function Provider({ children }: Props) {
     });
   }, [roomService]);
 
-  const joinRoom = useCallback((roomId: string) => {
+  const joinRoom = useCallback((roomId: string, playerName: string | null) => {
     let newRoomService: RoomService | null = null;
-    const newRoomServiceApi = RoomServiceApi.create(roomId, {
+    const newRoomServiceApi = RoomServiceApi.create(roomId, playerName, {
       onRoomJoined: (_roomService) => {
         newRoomService = _roomService;
         setRoomService(_roomService);

@@ -47,6 +47,7 @@ export class RoomServiceApi {
 
   constructor(
     roomId: string,
+    playerName: string | null,
     events: {
       onRoomJoined: (roomService: RoomService) => void;
       onGameStarted: (game: GameModel) => void;
@@ -64,7 +65,7 @@ export class RoomServiceApi {
     const authSessionStorage = AuthSessionStorage.get();
     const accessToken = authSessionStorage.getAccessToken();
 
-    const socketUrl = `${process.env.API_SOCKET_URL}/api/room-service/?id=${roomId}&access-token=${accessToken}`;
+    const socketUrl = `${process.env.API_SOCKET_URL}/api/room-service/?id=${roomId}&access-token=${accessToken}&name=${playerName}`;
     const socket = new WebSocket(socketUrl, []);
 
     let pingServerInterval: NodeJS.Timer | null = null;
@@ -204,6 +205,7 @@ export class RoomServiceApi {
 
   static create(
     roomId: string,
+    playerName: string | null,
     events: {
       onRoomJoined: (roomService: RoomService) => void;
       onGameStarted: (game: GameModel) => void;
@@ -218,7 +220,7 @@ export class RoomServiceApi {
       onOpen: () => void;
     }
   ): RoomServiceApi {
-    return new RoomServiceApi(roomId, events);
+    return new RoomServiceApi(roomId, playerName, events);
   }
 
   public disconnect() {
