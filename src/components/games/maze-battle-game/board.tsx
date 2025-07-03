@@ -176,11 +176,11 @@ export function MazeBattleGameBoard({ myPlayerId, game, gameState, onCommand }: 
 
   return (
     <div className={classnames('w-full', 'h-full', 'relative', 'overflow-hidden', 'flex', 'flex-row', 'p-4', 'gap-4')}>
-      <div>
-        <MazeCanvas maze={maze} characters={characters} itemBoxes={itemBoxes} />
+      <div className="grow">
+        <MazeCanvas maze={maze} myCharacter={myCharacter} characters={characters} itemBoxes={itemBoxes} />
       </div>
-      <div className="grow flex flex-col gap-4">
-        <Text>Characters</Text>
+      <div className="w-64 flex flex-col gap-4">
+        <Text>Players</Text>
         <div className="flex flex-col gap-2">
           {sortedCharacters.map((character) => (
             <MazeBattleGameCharacterCard

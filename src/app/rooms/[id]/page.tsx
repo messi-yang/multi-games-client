@@ -17,7 +17,6 @@ import { MazeBattleGameModel } from '@/models/game/games/maze-battle/game-model'
 import { CommandModel } from '@/models/game/command-model';
 import { MazeBattleGameRoom } from '@/components/games/maze-battle-game/room';
 import { MazeBattleGameStateVo } from '@/models/game/games/maze-battle/game-state-vo';
-import { ChatBox } from '@/components/boxes/chat-box';
 import { PlayersBox } from '@/components/boxes/players-box';
 import { JoinRoomModal } from '@/components/modals/join-room-modal';
 
@@ -143,7 +142,7 @@ const Page = function Page({ params }: { params: Promise<{ id: string }> }) {
       )}
       <header className="flex justify-between items-center p-2 bg-white/5 backdrop-blur-[20px] border border-white/10">
         <section
-          className="bg-white/10 backdrop-blur-[20px] p-3 rounded-2xl hover:bg-white/20 transition-all duration-200 border border-white/10"
+          className="bg-white/10 backdrop-blur-[20px] p-1 rounded-2xl hover:bg-white/20 transition-all duration-200 border border-white/10"
           role="button"
           tabIndex={0}
           onClick={handleLogoClick}
@@ -151,21 +150,22 @@ const Page = function Page({ params }: { params: Promise<{ id: string }> }) {
         >
           <Image src="/assets/logo.png" alt="small logo" width={32} height={32} className="drop-shadow-lg" />
         </section>
+        <section className="flex justify-center gap-2 shrink-0">
+          {currentGame && myPlayerId === hostPlayerId && !currentGame.hasStarted() && (
+            <Button text="Start Game" onClick={handleStartGame} />
+          )}
+          {currentGame && myPlayerId === hostPlayerId && currentGame.hasStarted() && <Button text="Restart Game" onClick={handleRestart} />}
+        </section>
         <Button text="Share" onClick={handleShareClick} />
       </header>
       <div className="relative flex flex-row gap-6 flex-1 overflow-hidden p-4">
-        <section className="w-80 h-full rounded-3xl bg-white/5 backdrop-blur-[20px] border border-white/10 shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]">
-          <ChatBox messages={messages} onSendMessage={handleSendMessage} />
-        </section>
         <div className="flex flex-col gap-4 w-full">
           <section
             ref={mapContainerRef}
             className="overflow-hidden relative grow w-full h-full rounded-3xl bg-white/5 backdrop-blur-[20px] border border-white/10 shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]"
           >
             <div className={twMerge(currentGame?.hasStarted() ? 'hidden' : 'flex', 'flex-col', 'h-full', 'w-full')}>
-              {currentGame instanceof MazeBattleGameModel && myPlayerId && hostPlayerId && (
-                <MazeBattleGameRoom myPlayerId={myPlayerId} hostPlayerId={hostPlayerId} players={players} />
-              )}
+              {currentGame instanceof MazeBattleGameModel && <MazeBattleGameRoom />}
             </div>
             <section className={twMerge(currentGame?.hasStarted() ? 'flex' : 'hidden', 'w-full', 'h-full', 'z-40')}>
               {currentGame instanceof MazeBattleGameModel &&
@@ -177,18 +177,17 @@ const Page = function Page({ params }: { params: Promise<{ id: string }> }) {
                 )}
             </section>
           </section>
-          <section className="flex justify-center gap-2 shrink-0">
-            {currentGame && myPlayerId === hostPlayerId && !currentGame.hasStarted() && (
-              <Button text="Start Game" onClick={handleStartGame} />
-            )}
-            {currentGame && myPlayerId === hostPlayerId && currentGame.hasStarted() && (
-              <Button text="Restart Game" onClick={handleRestart} />
-            )}
-          </section>
         </div>
         <section className="w-80 h-full rounded-3xl">
           {currentGame && myPlayerId && hostPlayerId && (
-            <PlayersBox myPlayerId={myPlayerId} hostPlayerId={hostPlayerId} game={currentGame} players={players} />
+            <PlayersBox
+              myPlayerId={myPlayerId}
+              hostPlayerId={hostPlayerId}
+              game={currentGame}
+              players={players}
+              messages={messages}
+              onSendMessage={handleSendMessage}
+            />
           )}
         </section>
       </div>

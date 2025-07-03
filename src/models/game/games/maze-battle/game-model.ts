@@ -41,7 +41,7 @@ export class MazeBattleGameModel extends GameModel<MazeBattleGameStateVo> {
   }
 
   public generateInitialState(players: PlayerModel[]): MazeBattleGameStateVo {
-    const maze = MazeVo.create({ width: 51, height: 51 });
+    const maze = MazeVo.create({ width: 55, height: 45 });
     const characters: CharacterVo[] = [];
     for (let i = 0; i < players.length; i += 1) {
       const player = players[i];

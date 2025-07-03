@@ -1,21 +1,25 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Application, Sprite, Container, Assets, Texture, Graphics } from 'pixi.js';
 import { CharacterVo } from '@/models/game/games/maze-battle/character-vo';
 import { MazeVo } from '@/models/game/games/maze-battle/maze-vo';
 import { WallVo } from '@/models/game/games/maze-battle/wall-vo';
 import { ItemBoxVo } from '@/models/game/games/maze-battle/item-box-vo';
 
-const CELL_SIZE = 12;
+const CELL_SIZE = 16;
 
 type Props = {
   maze: MazeVo;
+  myCharacter: CharacterVo | null;
   characters: CharacterVo[];
   itemBoxes: ItemBoxVo[];
 };
 
-export function MazeCanvas({ maze, characters, itemBoxes }: Props) {
+export function MazeCanvas({ maze, myCharacter, characters, itemBoxes }: Props) {
   const [appContainerElem, setAppContainerElem] = useState<HTMLDivElement | null>(null);
   const [application, setApplication] = useState<Application | null>(null);
+
+  const mazeWidth = useMemo(() => maze.getWidth() * CELL_SIZE, [maze]);
+  const mazeHeight = useMemo(() => maze.getHeight() * CELL_SIZE, [maze]);
 
   useEffect(() => {
     if (!appContainerElem) return;
@@ -27,14 +31,14 @@ export function MazeCanvas({ maze, characters, itemBoxes }: Props) {
     newApp
       .init({
         background: 0x000000,
-        width: maze.getWidth() * CELL_SIZE,
-        height: maze.getHeight() * CELL_SIZE,
+        width: mazeWidth,
+        height: mazeHeight,
         antialias: true,
       })
       .then(() => {
         appContainerElem.appendChild(newApp.canvas);
       });
-  }, [appContainerElem, application, maze]);
+  }, [appContainerElem, application, mazeWidth, mazeHeight]);
 
   const [stoneAsset, setStoneAsset] = useState<Texture | null>(null);
   useEffect(() => {
@@ -60,11 +64,47 @@ export function MazeCanvas({ maze, characters, itemBoxes }: Props) {
     });
   }, [application, itemBoxAsset]);
 
+  const [grassAsset, setGrassAsset] = useState<Texture | null>(null);
+  useEffect(() => {
+    if (grassAsset) return;
+    Assets.load<Texture>('/assets/games/maze-battle/grass.png').then((asset) => {
+      setGrassAsset(asset);
+    });
+  }, [application, grassAsset]);
+
+  const [seceneContainer, setSeceneContainer] = useState<Container | null>(null);
+  useEffect(() => {
+    if (!application) return;
+    const newSeceneContainer = new Container();
+    setSeceneContainer(newSeceneContainer);
+    application.stage.addChild(newSeceneContainer);
+  }, [application]);
+
+  useEffect(() => {
+    if (!application) return;
+    if (!grassAsset) return;
+
+    const newGrassContainer = new Container();
+    newGrassContainer.zIndex = -1;
+
+    maze.iterateCells((position) => {
+      const grassSprite = new Sprite(grassAsset);
+      grassSprite.x = position.getX() * CELL_SIZE;
+      grassSprite.y = position.getY() * CELL_SIZE;
+      grassSprite.width = CELL_SIZE;
+      grassSprite.height = CELL_SIZE;
+      newGrassContainer.addChild(grassSprite);
+    });
+
+    application.stage.addChild(newGrassContainer);
+  }, [application, grassAsset]);
+
   const [mazeContainer, setMazeContainer] = useState<Container | null>(null);
   useEffect(() => {
     if (!application) return;
     if (!stoneAsset) return;
     if (!dirtAsset) return;
+    if (!seceneContainer) return;
 
     const newMazeContainer = new Container();
 
@@ -87,12 +127,13 @@ export function MazeCanvas({ maze, characters, itemBoxes }: Props) {
     });
 
     setMazeContainer(newMazeContainer);
-    application.stage.addChild(newMazeContainer);
-  }, [application, maze, stoneAsset, dirtAsset]);
+    seceneContainer.addChild(newMazeContainer);
+  }, [application, maze, stoneAsset, dirtAsset, seceneContainer]);
 
   useEffect(() => {
     if (!application) return () => {};
     if (!mazeContainer) return () => {};
+    if (!seceneContainer) return () => {};
 
     const newCharactersContainer = new Container();
 
@@ -106,17 +147,18 @@ export function MazeCanvas({ maze, characters, itemBoxes }: Props) {
       newCharactersContainer.addChild(characterCircle);
     });
 
-    application.stage.addChild(newCharactersContainer);
+    seceneContainer.addChild(newCharactersContainer);
 
     return () => {
-      application.stage.removeChild(newCharactersContainer);
+      seceneContainer.removeChild(newCharactersContainer);
     };
-  }, [application, characters, mazeContainer]);
+  }, [application, characters, mazeContainer, seceneContainer]);
 
   useEffect(() => {
     if (!application) return () => {};
     if (!itemBoxAsset) return () => {};
     if (!mazeContainer) return () => {};
+    if (!seceneContainer) return () => {};
 
     const newItemBoxesContainer = new Container();
 
@@ -129,12 +171,25 @@ export function MazeCanvas({ maze, characters, itemBoxes }: Props) {
       newItemBoxesContainer.addChild(itemBoxSprite);
     });
 
-    application.stage.addChild(newItemBoxesContainer);
+    seceneContainer.addChild(newItemBoxesContainer);
 
     return () => {
-      application.stage.removeChild(newItemBoxesContainer);
+      seceneContainer.removeChild(newItemBoxesContainer);
     };
-  }, [application, itemBoxes, itemBoxAsset, mazeContainer]);
+  }, [application, itemBoxes, itemBoxAsset, mazeContainer, seceneContainer]);
+
+  useEffect(() => {
+    if (!myCharacter) return () => {};
+    if (!seceneContainer) return () => {};
+
+    // seceneContainer.x = -myCharacter.getPosition().getX() * CELL_SIZE + mazeWidth / 2;
+    // seceneContainer.y = -myCharacter.getPosition().getY() * CELL_SIZE + mazeHeight / 2;
+
+    return () => {
+      // application.stage.x = 0;
+      // application.stage.y = 0;
+    };
+  }, [myCharacter, seceneContainer, mazeWidth, mazeHeight]);
 
   return <div className="w-full h-full flex items-center justify-center" ref={setAppContainerElem} />;
 }
