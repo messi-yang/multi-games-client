@@ -27,14 +27,6 @@ export function MazeBattleGameBoard({ myPlayerId, game, gameState, onCommand }: 
 
   const characters = useMemo(() => gameState.getCharacters(), [gameState]);
 
-  const sortedCharacters = useMemo(() => {
-    return characters.sort((a, b) => {
-      if (a.getReachedGoadAt() && !b.getReachedGoadAt()) return -1;
-      if (!a.getReachedGoadAt() && b.getReachedGoadAt()) return 1;
-      return 0;
-    });
-  }, [characters]);
-
   const myCharacterId = useMemo(() => myPlayerId, [myPlayerId]);
 
   const myCharacter = useMemo(
@@ -177,19 +169,29 @@ export function MazeBattleGameBoard({ myPlayerId, game, gameState, onCommand }: 
   return (
     <div className={classnames('w-full', 'h-full', 'relative', 'overflow-hidden', 'flex', 'flex-row', 'p-4', 'gap-4')}>
       <div className="grow">
-        <MazeCanvas maze={maze} myCharacter={myCharacter} characters={characters} itemBoxes={itemBoxes} />
+        <MazeCanvas maze={maze} characters={characters} itemBoxes={itemBoxes} />
       </div>
       <div className="w-64 flex flex-col gap-4">
-        <Text>Players</Text>
         <div className="flex flex-col gap-2">
-          {sortedCharacters.map((character) => (
-            <MazeBattleGameCharacterCard
-              key={character.getId()}
-              character={character}
-              selected={character.getId() === selectedCharacterId}
-              isMyCharacter={myCharacterId === character.getId()}
-            />
-          ))}
+          <Text>You</Text>
+          {myCharacter && <MazeBattleGameCharacterCard key={myCharacter.getId()} character={myCharacter} isMyCharacter selected={false} />}
+        </div>
+        <div className="flex flex-col gap-2">
+          <Text>Other Players</Text>
+          <div className="flex flex-col gap-2">
+            {otherCharacters.map((character) => (
+              <div className="flex flex-row gap-2 items-center" key={character.getId()}>
+                <div className="grow">
+                  <MazeBattleGameCharacterCard
+                    key={character.getId()}
+                    character={character}
+                    isMyCharacter={myCharacterId === character.getId()}
+                    selected={selectedCharacterId === character.getId()}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

@@ -178,7 +178,7 @@ export class MazeVo {
     }
   }
 
-  public getRandomRoadPosition(): PositionVo[] {
+  public getRandomRoadPositions(count: number): PositionVo[] {
     const roadPositions: PositionVo[] = [];
     this.iterateCells((position, cell) => {
       if (cell instanceof RoadVo) {
@@ -187,7 +187,7 @@ export class MazeVo {
     });
 
     const randomRoadPositions: PositionVo[] = [];
-    while (randomRoadPositions.length < 10) {
+    while (randomRoadPositions.length < count) {
       const randomIndex = Math.floor(Math.random() * roadPositions.length);
       const randomRoadPosition = roadPositions[randomIndex];
       if (randomRoadPositions.some((position) => position.equals(randomRoadPosition))) {

@@ -25,24 +25,35 @@ export function MazeBattleGameCharacterCard({ character, selected, isMyCharacter
   const secondHeldItem = useMemo(() => character.getHeldItems()[1], [character]);
 
   return (
-    <div
-      className={twMerge('h-16 flex items-center gap-2 rounded-2xl p-2 bg-white/10 backdrop-blur-sm', selected && 'border border-white/40')}
-    >
-      <div className="w-4 h-4 rounded-full" style={{ backgroundColor: character.getColor() }} />
-      {character.getReachedGoadAt() && <Icon icon="material-symbols:trophy" className="w-4 h-4 text-yellow-500" />}
-      <Text>{`${isMyCharacter ? '(YOU)' : ''} ${character.getName()}`}</Text>
-      <div className="flex flex-row gap-2">
-        {firstHeldItem && (
-          <div className="w-6 h-6 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center">
-            <ItemIcon itemName={firstHeldItem.getName()} />
-          </div>
-        )}
-        {secondHeldItem && (
-          <div className="w-6 h-6 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center">
-            <ItemIcon itemName={secondHeldItem.getName()} />
-          </div>
-        )}
+    <div className={twMerge('flex items-center gap-2')}>
+      <div
+        className={twMerge('h-16 grow flex items-center gap-2 rounded-2xl px-3 py-2 backdrop-blur-sm border border-white/40')}
+        style={{
+          backgroundColor: `${character.getColor(80)}`,
+        }}
+      >
+        {character.getReachedGoadAt() && <Icon icon="material-symbols:trophy" className="w-4 h-4 text-yellow-500" />}
+        <div className="grow">
+          <Text>{`${isMyCharacter ? '(YOU)' : ''} ${character.getName()}`}</Text>
+        </div>
+        <div className="flex flex-row gap-2">
+          {firstHeldItem && (
+            <div className="w-6 h-6 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center">
+              <ItemIcon itemName={firstHeldItem.getName()} />
+            </div>
+          )}
+          {secondHeldItem && (
+            <div className="w-6 h-6 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center">
+              <ItemIcon itemName={secondHeldItem.getName()} />
+            </div>
+          )}
+        </div>
       </div>
+      {selected && (
+        <div className="rounded-full bg-yellow-500 backdrop-blur-sm border border-white/20 flex items-center justify-center p-1">
+          <Icon icon="solar:target-linear" className="w-4 h-4 text-white" />
+        </div>
+      )}
     </div>
   );
 }

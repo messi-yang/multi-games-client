@@ -111,8 +111,9 @@ export class CharacterVo {
     return CharacterVo.create({ ...this.getProps(), reachedGoadAt });
   }
 
-  public getColor(): string {
-    return this.color;
+  public getColor(opacity: number = 100): string {
+    const roundedOpacity = Math.round(opacity);
+    return `${this.color}${roundedOpacity === 100 ? '' : roundedOpacity}`;
   }
 
   public getHeldItems(): ItemVo[] {
