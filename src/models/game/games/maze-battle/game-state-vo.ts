@@ -34,15 +34,15 @@ export class MazeBattleGameStateVo extends GameStateVo<MazeBattleGameStateJson> 
     return new MazeBattleGameStateVo(props);
   }
 
-  static fromJson(stateJson: MazeBattleGameStateJson | null): MazeBattleGameStateVo {
-    if (!stateJson) {
-      return MazeBattleGameStateVo.create({
-        maze: MazeVo.create({ width: 15, height: 15 }),
-        characters: [],
-        itemBoxes: [],
-      });
-    }
+  static createEmpty(): MazeBattleGameStateVo {
+    return MazeBattleGameStateVo.create({
+      maze: MazeVo.create({ width: 15, height: 15 }),
+      characters: [],
+      itemBoxes: [],
+    });
+  }
 
+  static fromJson(stateJson: MazeBattleGameStateJson): MazeBattleGameStateVo {
     return new MazeBattleGameStateVo({
       maze: MazeVo.fromJson(stateJson.maze),
       characters: stateJson.characters.map((character) => CharacterVo.fromJson(character)),

@@ -5,7 +5,7 @@ import { MazeVo } from '@/models/game/games/maze-battle/maze-vo';
 import { WallVo } from '@/models/game/games/maze-battle/wall-vo';
 import { ItemBoxVo } from '@/models/game/games/maze-battle/item-box-vo';
 
-const CELL_SIZE = 16;
+const CELL_SIZE = 20;
 
 type Props = {
   maze: MazeVo;
@@ -147,7 +147,7 @@ export function MazeCanvas({ maze, characters, itemBoxes }: Props) {
     });
   }, [maze, stoneAsset, dirtAsset, mazeContainer]);
 
-  const characterObjectMapRef = useRef<Map<string, Graphics>>(new Map());
+  const characterContainerMapRef = useRef<Map<string, Container>>(new Map());
   const [charactersContainter, setCharactersContainter] = useState<Container | null>(null);
   useEffect(() => {
     if (!seceneContainer) return () => {};
@@ -166,27 +166,48 @@ export function MazeCanvas({ maze, characters, itemBoxes }: Props) {
     if (!charactersContainter) return;
 
     characters.forEach((character) => {
-      const existingCharacterObject = characterObjectMapRef.current.get(character.getId());
-      if (existingCharacterObject) {
-        existingCharacterObject.x = character.getPosition().getX() * CELL_SIZE;
-        existingCharacterObject.y = character.getPosition().getY() * CELL_SIZE;
+      const existingCharacterContainer = characterContainerMapRef.current.get(character.getId());
+      if (existingCharacterContainer) {
+        existingCharacterContainer.x = character.getPosition().getX() * CELL_SIZE;
+        existingCharacterContainer.y = character.getPosition().getY() * CELL_SIZE;
+        if (character.isReversed()) {
+          existingCharacterContainer.pivot.set(CELL_SIZE, CELL_SIZE);
+          existingCharacterContainer.rotation = Math.PI;
+        } else {
+          existingCharacterContainer.pivot.set(0, 0);
+          existingCharacterContainer.rotation = 0;
+        }
         return;
+      }
+
+      const characterContainer = new Container();
+      characterContainer.width = CELL_SIZE;
+      characterContainer.height = CELL_SIZE;
+      characterContainer.x = character.getPosition().getX() * CELL_SIZE;
+      characterContainer.y = character.getPosition().getY() * CELL_SIZE;
+      if (character.isReversed()) {
+        characterContainer.pivot.set(CELL_SIZE, CELL_SIZE);
+        characterContainer.rotation = Math.PI;
+      } else {
+        characterContainer.pivot.set(0, 0);
+        characterContainer.rotation = 0;
       }
 
       const characterCircle = new Graphics();
       characterCircle.beginFill(character.getColor(100), 0.8);
-      characterCircle.drawCircle(CELL_SIZE / 2, CELL_SIZE / 2, CELL_SIZE / 2);
+      characterCircle.drawRect(CELL_SIZE * 0.3, 0, CELL_SIZE * 0.4, CELL_SIZE * 0.2);
+      characterCircle.drawRect(0, CELL_SIZE * 0.2, CELL_SIZE, CELL_SIZE * 0.8);
       characterCircle.endFill();
-      characterCircle.x = character.getPosition().getX() * CELL_SIZE;
-      characterCircle.y = character.getPosition().getY() * CELL_SIZE;
-      characterObjectMapRef.current.set(character.getId(), characterCircle);
-      charactersContainter.addChild(characterCircle);
+
+      characterContainerMapRef.current.set(character.getId(), characterContainer);
+      characterContainer.addChild(characterCircle);
+      charactersContainter.addChild(characterContainer);
     });
 
-    characterObjectMapRef.current.forEach((characterObject, characterId) => {
+    characterContainerMapRef.current.forEach((characterContainer, characterId) => {
       if (!characters.some((character) => character.getId() === characterId)) {
-        charactersContainter.removeChild(characterObject);
-        characterObjectMapRef.current.delete(characterId);
+        charactersContainter.removeChild(characterContainer);
+        characterContainerMapRef.current.delete(characterId);
       }
     });
   }, [characters, charactersContainter]);

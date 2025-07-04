@@ -39,7 +39,7 @@ export class GameManager {
     const currentGameState = currentGame.getState();
 
     this.executedCommands = [];
-    this.historyGameState = currentGameState ? [currentGameState] : [];
+    this.historyGameState = [currentGameState];
     this.executedCommandMap = {};
     this.failedCommandMap = {};
     this.isReplayingCommands = false;
@@ -100,10 +100,6 @@ export class GameManager {
 
   private addExecutedCommand(command: CommandModel) {
     const currentGameState = this.currentGame.getState();
-    if (!currentGameState) {
-      // throw new Error('Current game state is null');
-      return;
-    }
     const newGameState = command.execute(currentGameState);
 
     this.executedCommands.push(command);
@@ -209,12 +205,18 @@ export class GameManager {
       this.bufferedCommandsFromReplaying.push(command);
       return;
     }
+    if (!this.currentGame.hasStarted()) return;
+    if (this.currentGame.isEnded()) return;
+    if (this.currentGame.getId() !== command.getGameId()) return;
+
     this.executeCommand(command);
   }
 
   public executeLocalCommand(command: CommandModel) {
     if (this.isReplayingCommands) return;
+    if (!this.currentGame.hasStarted()) return;
     if (this.currentGame.isEnded()) return;
+    if (this.currentGame.getId() !== command.getGameId()) return;
 
     if (this.executeCommand(command)) {
       this.publishLocalCommandExecutedEvent(command);

@@ -14,7 +14,7 @@ type Props = {
   roomId: string;
   name: GameNameEnum;
   started: boolean;
-  state: MazeBattleGameStateVo | null;
+  state: MazeBattleGameStateVo;
   createdAt: DateVo;
   updatedAt: DateVo;
 };
@@ -41,7 +41,7 @@ export class MazeBattleGameModel extends GameModel<MazeBattleGameStateVo> {
   }
 
   public generateInitialState(players: PlayerModel[]): MazeBattleGameStateVo {
-    const maze = MazeVo.create({ width: 55, height: 45 });
+    const maze = MazeVo.create({ width: 47, height: 35 });
     const characters: CharacterVo[] = [];
 
     const randomColors = getRandomColors(players.length);
