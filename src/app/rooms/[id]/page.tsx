@@ -168,12 +168,19 @@ const Page = function Page({ params }: { params: Promise<{ id: string }> }) {
               {currentGame instanceof MazeBattleGameModel && <MazeBattleGameRoom />}
             </div>
             <section className={twMerge(currentGame?.hasStarted() ? 'flex' : 'hidden', 'w-full', 'h-full', 'z-40')}>
-              {currentGame instanceof MazeBattleGameModel &&
+              {roomService &&
+                currentGame instanceof MazeBattleGameModel &&
                 currentGameState instanceof MazeBattleGameStateVo &&
                 myPlayerId &&
                 hostPlayerId &&
                 currentGame.hasStarted() && (
-                  <MazeBattleGameBoard myPlayerId={myPlayerId} game={currentGame} gameState={currentGameState} onCommand={handleCommand} />
+                  <MazeBattleGameBoard
+                    roomService={roomService}
+                    myPlayerId={myPlayerId}
+                    game={currentGame}
+                    gameState={currentGameState}
+                    onCommand={handleCommand}
+                  />
                 )}
             </section>
           </section>

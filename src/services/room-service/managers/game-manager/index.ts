@@ -14,6 +14,8 @@ export class GameManager {
 
   private localCommandExecutedEventHandler: EventHandler<CommandModel> = EventHandler.create<CommandModel>();
 
+  private commandExecutedEventHandler: EventHandler<CommandModel> = EventHandler.create<CommandModel>();
+
   private executedCommands: CommandModel[] = [];
 
   private historyGameState: GameStateVo[] = [];
@@ -210,6 +212,7 @@ export class GameManager {
     if (this.currentGame.getId() !== command.getGameId()) return;
 
     this.executeCommand(command);
+    this.publishCommandExecutedEvent(command);
   }
 
   public executeLocalCommand(command: CommandModel) {
@@ -220,6 +223,7 @@ export class GameManager {
 
     if (this.executeCommand(command)) {
       this.publishLocalCommandExecutedEvent(command);
+      this.publishCommandExecutedEvent(command);
     }
   }
 
@@ -268,5 +272,13 @@ export class GameManager {
 
   private publishLocalCommandExecutedEvent(command: CommandModel) {
     this.localCommandExecutedEventHandler.publish(command);
+  }
+
+  public subscribeCommandExecutedEvent(subscriber: EventHandlerSubscriber<CommandModel>): () => void {
+    return this.commandExecutedEventHandler.subscribe(subscriber);
+  }
+
+  private publishCommandExecutedEvent(command: CommandModel) {
+    this.commandExecutedEventHandler.publish(command);
   }
 }

@@ -82,6 +82,12 @@ export class MazeBattleGameStateVo extends GameStateVo<MazeBattleGameStateJson> 
     return this.characters.find((character) => character.getId() === playerId) ?? null;
   }
 
+  public getCharacterName(characterId: string): string | null {
+    const character = this.getCharacter(characterId);
+    if (!character) return null;
+    return character.getName();
+  }
+
   public updateCharacter(character: CharacterVo): MazeBattleGameStateVo {
     return MazeBattleGameStateVo.create({
       ...this.getProps(),

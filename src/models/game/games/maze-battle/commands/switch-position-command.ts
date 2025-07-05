@@ -109,4 +109,12 @@ export class MazeBattleGameSwitchPositionCommand extends CommandModel<MazeBattle
       payload: this.getPayload(),
     };
   }
+
+  public getCharacterId(): string {
+    return this.characterId;
+  }
+
+  public getTargetCharacterId(): string {
+    return this.targetCharacterId;
+  }
 }

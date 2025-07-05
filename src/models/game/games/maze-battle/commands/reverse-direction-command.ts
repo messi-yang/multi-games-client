@@ -84,7 +84,7 @@ export class MazeBattleGameReverseDirectionCommand extends CommandModel<MazeBatt
 
     const updatedCharacter = character.removeHeldItem(this.itemIndex);
 
-    const updatedTargetCharacter = targetCharacter.setReversed(!targetCharacter.isReversed());
+    const updatedTargetCharacter = targetCharacter.setReversed(true);
 
     return gameState.updateCharacter(updatedCharacter).updateCharacter(updatedTargetCharacter);
   }
@@ -106,5 +106,13 @@ export class MazeBattleGameReverseDirectionCommand extends CommandModel<MazeBatt
       name: this.name,
       payload: this.getPayload(),
     };
+  }
+
+  public getCharacterId(): string {
+    return this.characterId;
+  }
+
+  public getTargetCharacterId(): string {
+    return this.targetCharacterId;
   }
 }

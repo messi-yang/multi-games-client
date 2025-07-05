@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { debounce } from 'lodash';
 import classnames from 'classnames';
 import { MazeBattleGameModel } from '@/models/game/games/maze-battle/game-model';
 import { CommandModel } from '@/models/game/command-model';
@@ -12,15 +13,21 @@ import { MazeBattleGameCharacterCard } from './character-card';
 import { ItemNameEnum } from '@/models/game/games/maze-battle/item-name-enum';
 import { MazeBattleGameSwitchPositionCommand } from '@/models/game/games/maze-battle/commands/switch-position-command';
 import { MazeBattleGameReverseDirectionCommand } from '@/models/game/games/maze-battle/commands/reverse-direction-command';
+import { RoomService } from '@/services/room-service';
+import { NotificationEventHandler } from '@/event-dispatchers/notification-event-handler';
+import { MazeBattleGameCancelReverseCommand } from '@/models/game/games/maze-battle/commands/cancel-reverse-command';
 
 type Props = {
+  roomService: RoomService;
   myPlayerId: string;
   game: MazeBattleGameModel;
   gameState: MazeBattleGameStateVo;
   onCommand: (command: CommandModel<MazeBattleGameStateVo>) => void;
 };
 
-export function MazeBattleGameBoard({ myPlayerId, game, gameState, onCommand }: Props) {
+export function MazeBattleGameBoard({ roomService, myPlayerId, game, gameState, onCommand }: Props) {
+  const notificationEventHandler = useMemo(() => NotificationEventHandler.create(), []);
+
   const gameId = useMemo(() => game.getId(), [game]);
 
   const maze = useMemo(() => gameState.getMaze(), [gameState]);
@@ -165,6 +172,37 @@ export function MazeBattleGameBoard({ myPlayerId, game, gameState, onCommand }: 
   useHotKeys(['KeyZ', 'KeyX'], {
     onKeyDown: handleUseItemKeyDown,
   });
+
+  const cancelReverse = useCallback(() => {
+    if (!myCharacterId) return;
+    onCommand(MazeBattleGameCancelReverseCommand.create({ gameId, playerId: myPlayerId, characterId: myCharacterId }));
+  }, [myCharacterId, gameId, myPlayerId, onCommand]);
+
+  const cancelReverseDebouncer = useMemo(() => debounce(cancelReverse, 5000), [cancelReverse]);
+
+  useEffect(() => {
+    return roomService.subscribe('COMMAND_EXECUTED', (command) => {
+      if (command instanceof MazeBattleGameReverseDirectionCommand) {
+        const characterName = gameState.getCharacterName(command.getCharacterId());
+
+        const targetCharacterId = command.getTargetCharacterId();
+        const targetCharacterName = gameState.getCharacterName(targetCharacterId);
+
+        notificationEventHandler.publishGeneralMessage(`${characterName} reversed ${targetCharacterName}'s direction!`);
+
+        if (targetCharacterId === myCharacterId) {
+          cancelReverseDebouncer();
+        }
+      } else if (command instanceof MazeBattleGameSwitchPositionCommand) {
+        const characterName = gameState.getCharacterName(command.getCharacterId());
+
+        const targetCharacterId = command.getTargetCharacterId();
+        const targetCharacterName = gameState.getCharacterName(targetCharacterId);
+
+        notificationEventHandler.publishGeneralMessage(`${characterName} switched position with ${targetCharacterName}!`);
+      }
+    });
+  }, [roomService, notificationEventHandler, myCharacterId, gameState, cancelReverseDebouncer]);
 
   return (
     <div className={classnames('w-full', 'h-full', 'relative', 'overflow-hidden', 'flex', 'flex-row', 'p-4', 'gap-4')}>

@@ -6,6 +6,7 @@ import { MazeBattleGameStateVo } from '../game-state-vo';
 import { MazeBattleGameCommandNameEnum } from '../game-command-name-enum';
 import { MazeBattleGameSwitchPositionCommand, MazeBattleGameSwitchPositionCommandPayload } from './switch-position-command';
 import { MazeBattleGameReverseDirectionCommand, MazeBattleGameReverseDirectionCommandPayload } from './reverse-direction-command';
+import { MazeBattleGameCancelReverseCommand, MazeBattleGameCancelReverseCommandPayload } from './cancel-reverse-command';
 
 export function parseMazeBattleGameCommandJson(json: CommandJson): CommandModel<MazeBattleGameStateVo> {
   if (json.name === MazeBattleGameCommandNameEnum.Move) {
@@ -38,6 +39,15 @@ export function parseMazeBattleGameCommandJson(json: CommandJson): CommandModel<
       characterId: payload.characterId,
       itemIndex: payload.itemIndex,
       targetCharacterId: payload.targetCharacterId,
+    });
+  } else if (json.name === MazeBattleGameCommandNameEnum.CancelReverse) {
+    const payload = json.payload as MazeBattleGameCancelReverseCommandPayload;
+    return MazeBattleGameCancelReverseCommand.load({
+      id: json.id,
+      gameId: json.gameId,
+      playerId: json.playerId,
+      executedAt: DateVo.fromTimestamp(json.timestamp),
+      characterId: payload.characterId,
     });
   }
 

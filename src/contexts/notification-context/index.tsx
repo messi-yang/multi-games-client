@@ -1,6 +1,6 @@
 import { createContext, useEffect, useMemo } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
-import { NotificationEventDispatcher } from '@/event-dispatchers/notification-event-dispatcher';
+import { NotificationEventHandler } from '@/event-dispatchers/notification-event-handler';
 
 type ContextValue = {};
 
@@ -11,13 +11,23 @@ type Props = {
 };
 
 function Provider({ children }: Props) {
-  const notificationEventDispatcher = useMemo(() => NotificationEventDispatcher.create(), []);
+  const notificationEventHandler = useMemo(() => NotificationEventHandler.create(), []);
 
   useEffect(() => {
-    return notificationEventDispatcher.subscribeErrorTriggeredEvent((message) => {
-      toast.error(message);
+    return notificationEventHandler.subscribeErrorMessage((message) => {
+      toast.error(message, {
+        duration: 3000,
+      });
     });
-  }, [notificationEventDispatcher]);
+  }, [notificationEventHandler]);
+
+  useEffect(() => {
+    return notificationEventHandler.subscribeGeneralMessage((message) => {
+      toast.success(message, {
+        duration: 3000,
+      });
+    });
+  }, [notificationEventHandler]);
 
   return (
     <Context.Provider value={useMemo<ContextValue>(() => ({}), [])}>

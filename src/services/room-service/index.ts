@@ -108,6 +108,7 @@ export class RoomService {
   }
 
   subscribe(eventName: 'LOCAL_COMMAND_EXECUTED', subscriber: EventHandlerSubscriber<CommandModel>): () => void;
+  subscribe(eventName: 'COMMAND_EXECUTED', subscriber: EventHandlerSubscriber<CommandModel>): () => void;
   subscribe(eventName: 'CURRENT_GAME_UPDATED', subscriber: EventHandlerSubscriber<GameModel>): () => void;
   subscribe(eventName: 'NEW_GAME_SETUP', subscriber: EventHandlerSubscriber<GameModel>): () => void;
   subscribe(eventName: 'PLAYERS_UPDATED', subscriber: EventHandlerSubscriber<PlayerModel[]>): () => void;
@@ -118,6 +119,7 @@ export class RoomService {
   public subscribe(
     eventName:
       | 'LOCAL_COMMAND_EXECUTED'
+      | 'COMMAND_EXECUTED'
       | 'CURRENT_GAME_UPDATED'
       | 'NEW_GAME_SETUP'
       | 'PLAYERS_UPDATED'
@@ -135,6 +137,8 @@ export class RoomService {
   ): () => void {
     if (eventName === 'LOCAL_COMMAND_EXECUTED') {
       return this.gameManager.subscribeLocalCommandExecutedEvent(subscriber as EventHandlerSubscriber<CommandModel>);
+    } else if (eventName === 'COMMAND_EXECUTED') {
+      return this.gameManager.subscribeCommandExecutedEvent(subscriber as EventHandlerSubscriber<CommandModel>);
     } else if (eventName === 'CURRENT_GAME_UPDATED') {
       return this.gameManager.subscribeCurrentGameUpdatedEvent(subscriber as EventHandlerSubscriber<GameModel>);
     } else if (eventName === 'NEW_GAME_SETUP') {

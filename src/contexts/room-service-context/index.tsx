@@ -1,11 +1,13 @@
 import { createContext, useCallback, useRef, useState, useMemo, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { RoomServiceApi } from '@/adapters/apis/room-service-api';
 import { RoomService } from '@/services/room-service';
-import { NotificationEventDispatcher } from '@/event-dispatchers/notification-event-dispatcher';
 import { PlayerModel } from '@/models/player/player-model';
 import { GameModel } from '@/models/game/game-model';
 import { GameStateVo } from '@/models/game/game-state-vo';
 import { MessageModel } from '@/models/message/message-model';
+import { EventHandler } from '@/event-dispatchers/common/event-handler';
+import { NotificationEventHandler } from '@/event-dispatchers/notification-event-handler';
 
 type ConnectionStatus = 'WAITING' | 'CONNECTING' | 'OPEN' | 'DISCONNECTED';
 
@@ -54,7 +56,14 @@ export function Provider({ children }: Props) {
     window.roomService = roomService;
   }, [roomService]);
 
-  const notificationEventDispatcher = useMemo(() => NotificationEventDispatcher.create(), []);
+  const notificationEventHandler = useMemo(() => NotificationEventHandler.create(), []);
+
+  const gameMessageEventHandler = useMemo(() => EventHandler.create<string>(), []);
+  useEffect(() => {
+    return gameMessageEventHandler.subscribe((message) => {
+      toast.success(message);
+    });
+  }, [gameMessageEventHandler]);
 
   const roomApi = useRef<RoomServiceApi | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('WAITING');
@@ -137,56 +146,59 @@ export function Provider({ children }: Props) {
     });
   }, [roomService]);
 
-  const joinRoom = useCallback((roomId: string, playerName: string | null) => {
-    let newRoomService: RoomService | null = null;
-    const newRoomServiceApi = RoomServiceApi.create(roomId, playerName, {
-      onRoomJoined: (_roomService) => {
-        newRoomService = _roomService;
-        setRoomService(_roomService);
-      },
-      onGameStarted: (game) => {
-        if (!newRoomService) return;
-        newRoomService.startGame(game);
-      },
-      onNewGameSetup: (game) => {
-        if (!newRoomService) return;
-        newRoomService.setupNewGame(game);
-      },
-      onPlayerJoined: (player) => {
-        if (!newRoomService) return;
-        newRoomService.addPlayer(player);
-      },
-      onPlayerLeft: (playerId) => {
-        if (!newRoomService) return;
-        newRoomService.removePlayer(playerId);
-      },
-      onCommandReceived: (command) => {
-        if (!newRoomService) return;
-        newRoomService.executeRemoteCommand(command);
-      },
-      onCommandFailed: (commandId) => {
-        if (!newRoomService) return;
-        newRoomService.removeFailedCommand(commandId);
-      },
-      onMessageReceived: (message) => {
-        if (!newRoomService) return;
-        newRoomService.addRemoteMessage(message);
-      },
-      onErrored: (message) => {
-        notificationEventDispatcher.publishErrorTriggeredEvent(message);
-      },
-      onOpen: () => {
-        setConnectionStatus('OPEN');
-      },
-      onDisconnect: () => {
-        roomApi.current = null;
-        setRoomService(null);
-        setConnectionStatus('DISCONNECTED');
-      },
-    });
-    setConnectionStatus('CONNECTING');
-    roomApi.current = newRoomServiceApi;
-  }, []);
+  const joinRoom = useCallback(
+    (roomId: string, playerName: string | null) => {
+      let newRoomService: RoomService | null = null;
+      const newRoomServiceApi = RoomServiceApi.create(roomId, playerName, {
+        onRoomJoined: (_roomService) => {
+          newRoomService = _roomService;
+          setRoomService(_roomService);
+        },
+        onGameStarted: (game) => {
+          if (!newRoomService) return;
+          newRoomService.startGame(game);
+        },
+        onNewGameSetup: (game) => {
+          if (!newRoomService) return;
+          newRoomService.setupNewGame(game);
+        },
+        onPlayerJoined: (player) => {
+          if (!newRoomService) return;
+          newRoomService.addPlayer(player);
+        },
+        onPlayerLeft: (playerId) => {
+          if (!newRoomService) return;
+          newRoomService.removePlayer(playerId);
+        },
+        onCommandReceived: (command) => {
+          if (!newRoomService) return;
+          newRoomService.executeRemoteCommand(command);
+        },
+        onCommandFailed: (commandId) => {
+          if (!newRoomService) return;
+          newRoomService.removeFailedCommand(commandId);
+        },
+        onMessageReceived: (message) => {
+          if (!newRoomService) return;
+          newRoomService.addRemoteMessage(message);
+        },
+        onErrored: (message) => {
+          notificationEventHandler.publishErrorMessage(message);
+        },
+        onOpen: () => {
+          setConnectionStatus('OPEN');
+        },
+        onDisconnect: () => {
+          roomApi.current = null;
+          setRoomService(null);
+          setConnectionStatus('DISCONNECTED');
+        },
+      });
+      setConnectionStatus('CONNECTING');
+      roomApi.current = newRoomServiceApi;
+    },
+    [notificationEventHandler]
+  );
 
   const startGame = useCallback(() => {
     if (!roomApi.current || !roomService || !currentGame) return;

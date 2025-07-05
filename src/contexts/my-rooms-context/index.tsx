@@ -1,7 +1,7 @@
 import { createContext, useCallback, useState, useMemo } from 'react';
 import { RoomApi } from '@/adapters/apis/room-api';
 import { RoomModel } from '@/models/room/room-model';
-import { NotificationEventDispatcher } from '@/event-dispatchers/notification-event-dispatcher';
+import { NotificationEventHandler } from '@/event-dispatchers/notification-event-handler';
 
 type StatusMap = {
   [roomId: string]: boolean | undefined;
@@ -41,7 +41,7 @@ function Provider({ children }: Props) {
   const [roomApi] = useState<RoomApi>(() => RoomApi.create());
   const initialContextValue = createInitialContextValue();
   const [myRooms, setMyRooms] = useState<RoomModel[] | null>(initialContextValue.myRooms);
-  const notificationEventDispatcher = useMemo(() => NotificationEventDispatcher.create(), []);
+  const notificationEventHandler = useMemo(() => NotificationEventHandler.create(), []);
 
   const getMyRooms = useCallback(async () => {
     const newMyRooms = await roomApi.getMyRooms();
@@ -74,7 +74,7 @@ function Provider({ children }: Props) {
 
       const error = await roomApi.deleteRoom(roomId);
       if (error) {
-        notificationEventDispatcher.publishErrorTriggeredEvent(error.message);
+        notificationEventHandler.publishErrorMessage(error.message);
       }
 
       setDeleteRoomStatusMap((prev) => {
@@ -82,7 +82,7 @@ function Provider({ children }: Props) {
         return prev;
       });
     },
-    [notificationEventDispatcher, roomApi]
+    [notificationEventHandler, roomApi]
   );
 
   const contextValue = useMemo<ContextValue>(
