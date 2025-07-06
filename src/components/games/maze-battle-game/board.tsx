@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { debounce } from 'lodash';
 import classnames from 'classnames';
 import { MazeBattleGameModel } from '@/models/game/games/maze-battle/game-model';
@@ -45,7 +45,25 @@ export function MazeBattleGameBoard({ roomService, myPlayerId, game, gameState, 
 
   const itemBoxes = useMemo(() => gameState.getItemBoxes(), [gameState]);
 
-  const directionRef = useRef<DirectionEnum | null>(null);
+  const [countdown, setCountdown] = useState<number>(gameState.getCountdown());
+
+  useEffect(() => {
+    if (gameState.isStarted()) {
+      setCountdown(-1);
+      return () => {};
+    }
+
+    const interval = setInterval(() => {
+      setCountdown(gameState.getCountdown());
+
+      if (gameState.isStarted()) {
+        clearInterval(interval);
+      }
+    }, 100);
+    return () => clearInterval(interval);
+  }, [gameState]);
+
+  const [direction, setDirection] = useState<DirectionEnum | null>(null);
 
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
   useEffect(() => {
@@ -98,15 +116,15 @@ export function MazeBattleGameBoard({ roomService, myPlayerId, game, gameState, 
     (keys: string[]) => {
       const lastKey = keys[keys.length - 1];
       if (lastKey === 'ArrowRight') {
-        directionRef.current = DirectionEnum.Right;
+        setDirection(DirectionEnum.Right);
       } else if (lastKey === 'ArrowLeft') {
-        directionRef.current = DirectionEnum.Left;
+        setDirection(DirectionEnum.Left);
       } else if (lastKey === 'ArrowUp') {
-        directionRef.current = DirectionEnum.Up;
+        setDirection(DirectionEnum.Up);
       } else if (lastKey === 'ArrowDown') {
-        directionRef.current = DirectionEnum.Down;
+        setDirection(DirectionEnum.Down);
       } else {
-        directionRef.current = null;
+        setDirection(null);
       }
     },
     [move]
@@ -117,15 +135,18 @@ export function MazeBattleGameBoard({ roomService, myPlayerId, game, gameState, 
   });
 
   useEffect(() => {
+    if (!direction) return () => {};
+
+    move(direction);
     const interval = setInterval(() => {
-      if (!directionRef.current) return;
-      move(directionRef.current);
+      if (!direction) return;
+      move(direction);
     }, 100);
 
     return () => {
       clearInterval(interval);
     };
-  }, [move]);
+  }, [move, direction]);
 
   const useItem = useCallback(() => {
     if (!selectedCharacterId || !myCharacter) return;
@@ -200,7 +221,7 @@ export function MazeBattleGameBoard({ roomService, myPlayerId, game, gameState, 
   return (
     <div className={classnames('w-full', 'h-full', 'relative', 'overflow-hidden', 'flex', 'flex-row', 'p-4', 'gap-4')}>
       <div className="grow">
-        <MazeCanvas maze={maze} characters={characters} itemBoxes={itemBoxes} />
+        <MazeCanvas maze={maze} characters={characters} myCharacter={myCharacter} itemBoxes={itemBoxes} countdown={countdown} />
       </div>
       <div className="w-64 flex flex-col gap-4">
         <div className="flex flex-col gap-2">

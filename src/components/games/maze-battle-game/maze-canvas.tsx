@@ -4,16 +4,19 @@ import { CharacterVo } from '@/models/game/games/maze-battle/character-vo';
 import { MazeVo } from '@/models/game/games/maze-battle/maze-vo';
 import { WallVo } from '@/models/game/games/maze-battle/wall-vo';
 import { ItemBoxVo } from '@/models/game/games/maze-battle/item-box-vo';
+import { Text } from '@/components/texts/text';
 
-const CELL_SIZE = 20;
+const CELL_SIZE = 14;
 
 type Props = {
   maze: MazeVo;
   characters: CharacterVo[];
+  myCharacter: CharacterVo | null;
   itemBoxes: ItemBoxVo[];
+  countdown: number;
 };
 
-export function MazeCanvas({ maze, characters, itemBoxes }: Props) {
+export function MazeCanvas({ maze, characters, myCharacter, itemBoxes, countdown }: Props) {
   const [appContainerElem, setAppContainerElem] = useState<HTMLDivElement | null>(null);
   const [application, setApplication] = useState<Application | null>(null);
 
@@ -70,6 +73,14 @@ export function MazeCanvas({ maze, characters, itemBoxes }: Props) {
       setGrassAsset(asset);
     });
   }, [application, grassAsset]);
+
+  const [maskAsset, setMaskAsset] = useState<Texture | null>(null);
+  useEffect(() => {
+    if (maskAsset) return;
+    Assets.load<Texture>('/assets/games/maze-battle/mask.png').then((asset) => {
+      setMaskAsset(asset);
+    });
+  }, [application, maskAsset]);
 
   const [seceneContainer, setSeceneContainer] = useState<Container | null>(null);
   useEffect(() => {
@@ -258,5 +269,73 @@ export function MazeCanvas({ maze, characters, itemBoxes }: Props) {
     });
   }, [application, itemBoxes, itemBoxAsset, mazeContainer, seceneContainer, itemBoxesContainer]);
 
-  return <div className="w-full h-full flex items-center justify-center" ref={setAppContainerElem} />;
+  const [maskContainer, setMaskContainer] = useState<Container | null>(null);
+  useEffect(() => {
+    if (!seceneContainer || !maskAsset || !!maskContainer) return () => {};
+
+    const newMaskContainer = new Container();
+    newMaskContainer.zIndex = 4;
+
+    const maskSprite = new Sprite(maskAsset);
+    maskSprite.x = -CELL_SIZE * 5;
+    maskSprite.y = -CELL_SIZE * 5;
+    maskSprite.width = CELL_SIZE * 10;
+    maskSprite.height = CELL_SIZE * 10;
+    newMaskContainer.addChild(maskSprite);
+
+    const leftMask = new Graphics();
+    leftMask.beginFill(0x000000);
+    leftMask.drawRect(
+      -CELL_SIZE * 5 - CELL_SIZE * mazeWidth,
+      -CELL_SIZE * 5 - CELL_SIZE * mazeHeight,
+      CELL_SIZE * mazeWidth,
+      2 * CELL_SIZE * mazeHeight
+    );
+    leftMask.endFill();
+    newMaskContainer.addChild(leftMask);
+
+    const rightMask = new Graphics();
+    rightMask.beginFill(0x000000);
+    rightMask.drawRect(5 * CELL_SIZE, -CELL_SIZE * 5 - CELL_SIZE * mazeHeight, CELL_SIZE * mazeWidth, 2 * CELL_SIZE * mazeHeight);
+    rightMask.endFill();
+    newMaskContainer.addChild(rightMask);
+
+    const topMask = new Graphics();
+    topMask.beginFill(0x000000);
+    topMask.drawRect(-CELL_SIZE * 5, -CELL_SIZE * 5 - CELL_SIZE * mazeHeight, 10 * CELL_SIZE, CELL_SIZE * mazeHeight);
+    topMask.endFill();
+    newMaskContainer.addChild(topMask);
+
+    const bottomMask = new Graphics();
+    bottomMask.beginFill(0x000000);
+    bottomMask.drawRect(-CELL_SIZE * 5, 5 * CELL_SIZE, 10 * CELL_SIZE, CELL_SIZE * mazeHeight);
+    bottomMask.endFill();
+    newMaskContainer.addChild(bottomMask);
+
+    setMaskContainer(newMaskContainer);
+    seceneContainer.addChild(newMaskContainer);
+
+    return () => {
+      seceneContainer.removeChild(newMaskContainer);
+    };
+  }, [seceneContainer, maskAsset, mazeWidth, mazeHeight]);
+
+  useEffect(() => {
+    if (!maskContainer || !myCharacter) return;
+
+    maskContainer.x = myCharacter.getPosition().getX() * CELL_SIZE;
+    maskContainer.y = myCharacter.getPosition().getY() * CELL_SIZE;
+    maskContainer.alpha = countdown > 0 ? 0 : 1;
+  }, [maskContainer, myCharacter, countdown]);
+
+  return (
+    <div className="w-full h-full relative">
+      {countdown > -1 && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full flex items-center justify-center">
+          <Text size="text-4xl">{countdown === 0 ? 'GO!' : countdown}</Text>
+        </div>
+      )}
+      <div className="w-full h-full flex items-center justify-center" ref={setAppContainerElem} />
+    </div>
+  );
 }

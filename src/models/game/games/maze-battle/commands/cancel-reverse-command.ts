@@ -50,6 +50,10 @@ export class MazeBattleGameCancelReverseCommand extends CommandModel<MazeBattleG
   }
 
   public execute(gameState: MazeBattleGameStateVo): MazeBattleGameStateVo {
+    if (!gameState.isStarted()) {
+      return gameState;
+    }
+
     const character = gameState.getCharacter(this.playerId);
     if (!character) {
       return gameState;

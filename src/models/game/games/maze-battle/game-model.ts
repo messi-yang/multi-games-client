@@ -41,7 +41,7 @@ export class MazeBattleGameModel extends GameModel<MazeBattleGameStateVo> {
   }
 
   public generateInitialState(players: PlayerModel[]): MazeBattleGameStateVo {
-    const maze = MazeVo.create({ width: 35, height: 35 });
+    const maze = MazeVo.create({ width: 51, height: 51 });
     const characters: CharacterVo[] = [];
 
     const randomColors = getRandomColors(players.length);
@@ -70,7 +70,7 @@ export class MazeBattleGameModel extends GameModel<MazeBattleGameStateVo> {
       itemBoxes.push(itemBox);
     }
 
-    return MazeBattleGameStateVo.create({ maze, characters, itemBoxes });
+    return MazeBattleGameStateVo.create({ maze, characters, itemBoxes, startedAt: DateVo.now() });
   }
 
   public isPlayerInGame(playerId: string): boolean {

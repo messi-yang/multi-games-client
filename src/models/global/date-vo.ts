@@ -25,8 +25,20 @@ export class DateVo {
     return this.date.getTime();
   }
 
+  public subtractSeconds(seconds: number) {
+    return new DateVo(new Date(this.date.getTime() - seconds * 1000));
+  }
+
+  public addSeconds(seconds: number) {
+    return new DateVo(new Date(this.date.getTime() + seconds * 1000));
+  }
+
   public getDiffInMilliseconds(otherDate: DateVo) {
     return this.date.getTime() - otherDate.date.getTime();
+  }
+
+  public getDiffInSeconds(otherDate: DateVo) {
+    return Math.floor((this.date.getTime() - otherDate.date.getTime()) / 1000);
   }
 
   public getSecondsAgo() {

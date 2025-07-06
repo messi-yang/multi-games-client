@@ -53,6 +53,10 @@ export class MazeBattleGameMoveCommand extends CommandModel<MazeBattleGameStateV
   }
 
   public execute(gameState: MazeBattleGameStateVo): MazeBattleGameStateVo {
+    if (!gameState.isStarted()) {
+      return gameState;
+    }
+
     const character = gameState.getCharacter(this.playerId);
     if (!character) {
       return gameState;
