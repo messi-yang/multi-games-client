@@ -65,7 +65,7 @@ export function PlayersBox({ myPlayerId, hostPlayerId, game, players, messages, 
               </div>
 
               <div className="flex justify-end">
-                {game.hasStarted() && <Text size="text-xs">{game.isPlayerInGame(player.getId()) ? 'Playing' : 'Not Playing'}</Text>}
+                {game.hasStarted() && <Text size="text-xs">{game.isPlayerInGame(player.getId()) ? 'Playing' : 'Spectating'}</Text>}
                 {!game.hasStarted() && <Text size="text-xs">Waiting</Text>}
               </div>
             </div>

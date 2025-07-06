@@ -272,6 +272,10 @@ export function MazeCanvas({ maze, characters, myCharacter, itemBoxes, countdown
   const [maskContainer, setMaskContainer] = useState<Container | null>(null);
   useEffect(() => {
     if (!seceneContainer || !maskAsset || !!maskContainer) return () => {};
+    if (!myCharacter) {
+      // Observer won't have a mask
+      return () => {};
+    }
 
     const newMaskContainer = new Container();
     newMaskContainer.zIndex = 4;
