@@ -1,6 +1,7 @@
 import { DateVo } from '@/models/global/date-vo';
 import { PositionJson, PositionVo } from './position-vo';
-import { ItemJson, ItemVo } from './item-vo';
+import { ItemJson, ItemVo } from './items/item-vo';
+import { parseItemJson } from './items/utils';
 
 export type CharacterJson = {
   id: string;
@@ -58,7 +59,7 @@ export class CharacterVo {
       position: PositionVo.fromJson(json.position),
       reachedGoadAt: json.reachedGoadAt ? DateVo.parseString(json.reachedGoadAt) : null,
       color: json.color,
-      heldItems: json.heldItems.map((item) => ItemVo.fromJson(item)),
+      heldItems: json.heldItems.map((item) => parseItemJson(item)),
       reversed: json.reversed,
     });
   }
@@ -120,19 +121,20 @@ export class CharacterVo {
     return this.heldItems;
   }
 
-  public getHeldItem(itemIndex: number): ItemVo | null {
-    return this.heldItems[itemIndex] || null;
+  public getFirstHeldItem(): ItemVo | null {
+    return this.heldItems[0] || null;
+  }
+
+  public getSecondHeldItem(): ItemVo | null {
+    return this.heldItems[1] || null;
   }
 
   public addHeldItem(item: ItemVo): CharacterVo {
     return CharacterVo.create({ ...this.getProps(), heldItems: [...this.heldItems, item] });
   }
 
-  public removeHeldItem(itemIndex: number): CharacterVo {
-    return CharacterVo.create({
-      ...this.getProps(),
-      heldItems: this.heldItems.filter((_, index) => index !== itemIndex),
-    });
+  public removeFirstHeldItem(): CharacterVo {
+    return CharacterVo.create({ ...this.getProps(), heldItems: this.heldItems.slice(1) });
   }
 
   public isReversed(): boolean {

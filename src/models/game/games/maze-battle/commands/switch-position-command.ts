@@ -4,11 +4,10 @@ import { CommandModel } from '../../../command-model';
 import { MazeBattleGameStateVo } from '../game-state-vo';
 import { MazeBattleGameCommandNameEnum } from '../game-command-name-enum';
 import { generateUuidV4 } from '@/utils/uuid';
-import { ItemNameEnum } from '../item-name-enum';
+import { ItemNameEnum } from '../items/item-name-enum';
 
 export type MazeBattleGameSwitchPositionCommandPayload = {
   characterId: string;
-  itemIndex: number;
   targetCharacterId: string;
 };
 
@@ -16,7 +15,6 @@ type CreateProps = {
   gameId: string;
   playerId: string;
   characterId: string;
-  itemIndex: number;
   targetCharacterId: string;
 };
 
@@ -26,14 +24,11 @@ type Props = {
   playerId: string;
   executedAt: DateVo;
   characterId: string;
-  itemIndex: number;
   targetCharacterId: string;
 };
 
 export class MazeBattleGameSwitchPositionCommand extends CommandModel<MazeBattleGameStateVo> {
   private characterId: string;
-
-  private itemIndex: number;
 
   private targetCharacterId: string;
 
@@ -46,7 +41,6 @@ export class MazeBattleGameSwitchPositionCommand extends CommandModel<MazeBattle
       executedAt: props.executedAt,
     });
     this.characterId = props.characterId;
-    this.itemIndex = props.itemIndex;
     this.targetCharacterId = props.targetCharacterId;
   }
 
@@ -77,13 +71,13 @@ export class MazeBattleGameSwitchPositionCommand extends CommandModel<MazeBattle
       return gameState;
     }
 
-    const item = character.getHeldItem(this.itemIndex);
+    const item = character.getFirstHeldItem();
     if (!item || item.getName() !== ItemNameEnum.PositionSwitcher) {
       return gameState;
     }
 
     const characterPosition = character.getPosition();
-    let updatedCharacter = character.removeHeldItem(this.itemIndex);
+    let updatedCharacter = character.removeFirstHeldItem();
     updatedCharacter = updatedCharacter.updatePosition(targetCharacter.getPosition());
 
     const updatedTargetCharacter = targetCharacter.updatePosition(characterPosition);
@@ -94,7 +88,6 @@ export class MazeBattleGameSwitchPositionCommand extends CommandModel<MazeBattle
   public getPayload(): MazeBattleGameSwitchPositionCommandPayload {
     return {
       characterId: this.characterId,
-      itemIndex: this.itemIndex,
       targetCharacterId: this.targetCharacterId,
     };
   }

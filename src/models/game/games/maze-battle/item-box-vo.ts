@@ -1,4 +1,5 @@
-import { ItemJson, ItemVo } from './item-vo';
+import { ItemJson, ItemVo } from './items/item-vo';
+import { parseItemJson } from './items/utils';
 import { PositionJson, PositionVo } from './position-vo';
 
 export type ItemBoxJson = {
@@ -26,7 +27,7 @@ export class ItemBoxVo {
   }
 
   static fromJson(json: ItemBoxJson): ItemBoxVo {
-    return ItemBoxVo.create({ item: ItemVo.fromJson(json.item), position: PositionVo.fromJson(json.position) });
+    return ItemBoxVo.create({ item: parseItemJson(json.item), position: PositionVo.fromJson(json.position) });
   }
 
   public toJson(): ItemBoxJson {

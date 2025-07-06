@@ -26,7 +26,6 @@ export function parseMazeBattleGameCommandJson(json: CommandJson): CommandModel<
       playerId: json.playerId,
       executedAt: DateVo.fromTimestamp(json.timestamp),
       characterId: payload.characterId,
-      itemIndex: payload.itemIndex,
       targetCharacterId: payload.targetCharacterId,
     });
   } else if (json.name === MazeBattleGameCommandNameEnum.ReverseDirection) {
@@ -37,7 +36,6 @@ export function parseMazeBattleGameCommandJson(json: CommandJson): CommandModel<
       playerId: json.playerId,
       executedAt: DateVo.fromTimestamp(json.timestamp),
       characterId: payload.characterId,
-      itemIndex: payload.itemIndex,
       targetCharacterId: payload.targetCharacterId,
     });
   } else if (json.name === MazeBattleGameCommandNameEnum.CancelReverse) {

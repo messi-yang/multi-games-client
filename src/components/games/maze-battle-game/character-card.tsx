@@ -1,15 +1,16 @@
+import Image from 'next/image';
 import { useMemo } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { Icon } from '@iconify/react';
 import { Text } from '@/components/texts/text';
 import { CharacterVo } from '@/models/game/games/maze-battle/character-vo';
-import { ItemNameEnum } from '@/models/game/games/maze-battle/item-name-enum';
+import { ItemNameEnum } from '@/models/game/games/maze-battle/items/item-name-enum';
 
 function ItemIcon({ itemName }: { itemName: ItemNameEnum }) {
   if (itemName === ItemNameEnum.DirectionReverser) {
-    return <Icon icon="ic:baseline-compare-arrows" className="w-4 h-4" />;
+    return <Image src="/assets/games/maze-battle/reverse.png" alt="Direction Reverser" width={20} height={20} />;
   } else if (itemName === ItemNameEnum.PositionSwitcher) {
-    return <Icon icon="ic:baseline-switch-access-shortcut" className="w-4 h-4" />;
+    return <Image src="/assets/games/maze-battle/switch.png" alt="Position Switcher" width={20} height={20} />;
   }
   return null;
 }
@@ -21,8 +22,8 @@ type Props = {
 };
 
 export function MazeBattleGameCharacterCard({ character, selected, isMyCharacter }: Props) {
-  const firstHeldItem = useMemo(() => character.getHeldItems()[0], [character]);
-  const secondHeldItem = useMemo(() => character.getHeldItems()[1], [character]);
+  const firstHeldItem = useMemo(() => character.getFirstHeldItem(), [character]);
+  const secondHeldItem = useMemo(() => character.getSecondHeldItem(), [character]);
 
   return (
     <div className={twMerge('flex items-center gap-2')}>
@@ -38,12 +39,12 @@ export function MazeBattleGameCharacterCard({ character, selected, isMyCharacter
         </div>
         <div className="flex flex-row gap-2">
           {firstHeldItem && (
-            <div className="w-6 h-6 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center">
               <ItemIcon itemName={firstHeldItem.getName()} />
             </div>
           )}
           {secondHeldItem && (
-            <div className="w-6 h-6 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center opacity-25">
               <ItemIcon itemName={secondHeldItem.getName()} />
             </div>
           )}

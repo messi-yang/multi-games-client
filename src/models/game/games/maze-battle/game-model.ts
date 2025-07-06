@@ -6,8 +6,8 @@ import { MazeBattleGameStateVo } from './game-state-vo';
 import { CharacterVo } from './character-vo';
 import { MazeVo } from './maze-vo';
 import { getRandomColors } from './utils';
-import { ItemVo } from './item-vo';
 import { ItemBoxVo } from './item-box-vo';
+import { createRandomItem } from './items/utils';
 
 type Props = {
   id: string;
@@ -41,7 +41,7 @@ export class MazeBattleGameModel extends GameModel<MazeBattleGameStateVo> {
   }
 
   public generateInitialState(players: PlayerModel[]): MazeBattleGameStateVo {
-    const maze = MazeVo.create({ width: 47, height: 35 });
+    const maze = MazeVo.create({ width: 35, height: 35 });
     const characters: CharacterVo[] = [];
 
     const randomColors = getRandomColors(players.length);
@@ -64,7 +64,7 @@ export class MazeBattleGameModel extends GameModel<MazeBattleGameStateVo> {
     const randomRoadPositions = maze.getRandomRoadPositions(30);
     const itemBoxes: ItemBoxVo[] = [];
     for (let i = 0; i < randomRoadPositions.length; i += 1) {
-      const item = ItemVo.createRandom();
+      const item = createRandomItem();
       const position = randomRoadPositions[i];
       const itemBox = ItemBoxVo.create({ item, position });
       itemBoxes.push(itemBox);

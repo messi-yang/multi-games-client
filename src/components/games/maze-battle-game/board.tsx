@@ -10,7 +10,7 @@ import { useHotKeys } from '@/hooks/use-hot-keys';
 import { DirectionEnum } from '@/models/game/games/maze-battle/direction-enum';
 import { Text } from '@/components/texts/text';
 import { MazeBattleGameCharacterCard } from './character-card';
-import { ItemNameEnum } from '@/models/game/games/maze-battle/item-name-enum';
+import { ItemNameEnum } from '@/models/game/games/maze-battle/items/item-name-enum';
 import { MazeBattleGameSwitchPositionCommand } from '@/models/game/games/maze-battle/commands/switch-position-command';
 import { MazeBattleGameReverseDirectionCommand } from '@/models/game/games/maze-battle/commands/reverse-direction-command';
 import { RoomService } from '@/services/room-service';
@@ -127,43 +127,36 @@ export function MazeBattleGameBoard({ roomService, myPlayerId, game, gameState, 
     };
   }, [move]);
 
-  const useItem = useCallback(
-    (itemIndex: number) => {
-      if (!selectedCharacterId || !myCharacter) return;
-      const item = myCharacter.getHeldItem(itemIndex);
-      if (!item) return;
+  const useItem = useCallback(() => {
+    if (!selectedCharacterId || !myCharacter) return;
+    const item = myCharacter.getFirstHeldItem();
+    if (!item) return;
 
-      if (item.getName() === ItemNameEnum.PositionSwitcher) {
-        onCommand(
-          MazeBattleGameSwitchPositionCommand.create({
-            gameId,
-            playerId: myPlayerId,
-            characterId: myCharacter.getId(),
-            itemIndex,
-            targetCharacterId: selectedCharacterId,
-          })
-        );
-      } else if (item.getName() === ItemNameEnum.DirectionReverser) {
-        onCommand(
-          MazeBattleGameReverseDirectionCommand.create({
-            gameId,
-            playerId: myPlayerId,
-            characterId: myCharacter.getId(),
-            itemIndex,
-            targetCharacterId: selectedCharacterId,
-          })
-        );
-      }
-    },
-    [selectedCharacterId, myCharacter, gameId, myPlayerId, onCommand]
-  );
+    if (item.getName() === ItemNameEnum.PositionSwitcher) {
+      onCommand(
+        MazeBattleGameSwitchPositionCommand.create({
+          gameId,
+          playerId: myPlayerId,
+          characterId: myCharacter.getId(),
+          targetCharacterId: selectedCharacterId,
+        })
+      );
+    } else if (item.getName() === ItemNameEnum.DirectionReverser) {
+      onCommand(
+        MazeBattleGameReverseDirectionCommand.create({
+          gameId,
+          playerId: myPlayerId,
+          characterId: myCharacter.getId(),
+          targetCharacterId: selectedCharacterId,
+        })
+      );
+    }
+  }, [selectedCharacterId, myCharacter, gameId, myPlayerId, onCommand]);
 
   const handleUseItemKeyDown = useCallback(
     (key: string) => {
       if (key === 'KeyZ') {
-        useItem(0);
-      } else if (key === 'KeyX') {
-        useItem(1);
+        useItem();
       }
     },
     [useItem]

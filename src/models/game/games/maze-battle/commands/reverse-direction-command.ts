@@ -4,11 +4,10 @@ import { CommandModel } from '../../../command-model';
 import { MazeBattleGameStateVo } from '../game-state-vo';
 import { MazeBattleGameCommandNameEnum } from '../game-command-name-enum';
 import { generateUuidV4 } from '@/utils/uuid';
-import { ItemNameEnum } from '../item-name-enum';
+import { ItemNameEnum } from '../items/item-name-enum';
 
 export type MazeBattleGameReverseDirectionCommandPayload = {
   characterId: string;
-  itemIndex: number;
   targetCharacterId: string;
 };
 
@@ -16,7 +15,6 @@ type CreateProps = {
   gameId: string;
   playerId: string;
   characterId: string;
-  itemIndex: number;
   targetCharacterId: string;
 };
 
@@ -26,14 +24,11 @@ type Props = {
   playerId: string;
   executedAt: DateVo;
   characterId: string;
-  itemIndex: number;
   targetCharacterId: string;
 };
 
 export class MazeBattleGameReverseDirectionCommand extends CommandModel<MazeBattleGameStateVo> {
   private characterId: string;
-
-  private itemIndex: number;
 
   private targetCharacterId: string;
 
@@ -46,7 +41,6 @@ export class MazeBattleGameReverseDirectionCommand extends CommandModel<MazeBatt
       executedAt: props.executedAt,
     });
     this.characterId = props.characterId;
-    this.itemIndex = props.itemIndex;
     this.targetCharacterId = props.targetCharacterId;
   }
 
@@ -77,12 +71,12 @@ export class MazeBattleGameReverseDirectionCommand extends CommandModel<MazeBatt
       return gameState;
     }
 
-    const item = character.getHeldItem(this.itemIndex);
+    const item = character.getFirstHeldItem();
     if (!item || item.getName() !== ItemNameEnum.DirectionReverser) {
       return gameState;
     }
 
-    const updatedCharacter = character.removeHeldItem(this.itemIndex);
+    const updatedCharacter = character.removeFirstHeldItem();
 
     const updatedTargetCharacter = targetCharacter.setReversed(true);
 
@@ -92,7 +86,6 @@ export class MazeBattleGameReverseDirectionCommand extends CommandModel<MazeBatt
   public getPayload(): MazeBattleGameReverseDirectionCommandPayload {
     return {
       characterId: this.characterId,
-      itemIndex: this.itemIndex,
       targetCharacterId: this.targetCharacterId,
     };
   }
