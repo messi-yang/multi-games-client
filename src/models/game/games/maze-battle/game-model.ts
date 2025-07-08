@@ -2,7 +2,7 @@ import { DateVo } from '@/models/global/date-vo';
 import { GameModel } from '../../game-model';
 import { GameNameEnum } from '../../game-name-enum';
 import { PlayerModel } from '@/models/player/player-model';
-import { MazeBattleGameStateVo } from './game-state-vo';
+import { MazeBattleGameStateModel } from './game-state-model';
 import { CharacterVo } from './character-vo';
 import { MazeVo } from './maze-vo';
 import { getRandomColors } from './utils';
@@ -14,12 +14,12 @@ type Props = {
   roomId: string;
   name: GameNameEnum;
   started: boolean;
-  state: MazeBattleGameStateVo;
+  state: MazeBattleGameStateModel;
   createdAt: DateVo;
   updatedAt: DateVo;
 };
 
-export class MazeBattleGameModel extends GameModel<MazeBattleGameStateVo> {
+export class MazeBattleGameModel extends GameModel<MazeBattleGameStateModel> {
   private constructor(props: Props) {
     super(props);
   }
@@ -40,7 +40,7 @@ export class MazeBattleGameModel extends GameModel<MazeBattleGameStateVo> {
     });
   }
 
-  public generateInitialState(players: PlayerModel[]): MazeBattleGameStateVo {
+  public generateInitialState(players: PlayerModel[]): MazeBattleGameStateModel {
     const maze = MazeVo.create({ width: 51, height: 51 });
     const characters: CharacterVo[] = [];
 
@@ -70,7 +70,7 @@ export class MazeBattleGameModel extends GameModel<MazeBattleGameStateVo> {
       itemBoxes.push(itemBox);
     }
 
-    return MazeBattleGameStateVo.create({ maze, characters, itemBoxes, startedAt: DateVo.now() });
+    return MazeBattleGameStateModel.create({ maze, characters, itemBoxes, startedAt: DateVo.now() });
   }
 
   public isPlayerInGame(playerId: string): boolean {

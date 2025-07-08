@@ -1,6 +1,6 @@
 import { DateVo } from '../global/date-vo';
 import { CommandJson } from './command-json';
-import { GameStateVo } from './game-state-vo';
+import { GameStateModel } from './game-state-model';
 
 type Props = {
   id: string;
@@ -10,7 +10,7 @@ type Props = {
   executedAt: DateVo;
 };
 
-export abstract class CommandModel<GameState extends GameStateVo = GameStateVo> {
+export abstract class CommandModel<GameState extends GameStateModel = GameStateModel> {
   protected id: string;
 
   protected gameId: string;

@@ -16,7 +16,7 @@ import { MazeBattleGameBoard } from '@/components/games/maze-battle-game/board';
 import { MazeBattleGameModel } from '@/models/game/games/maze-battle/game-model';
 import { CommandModel } from '@/models/game/command-model';
 import { MazeBattleGameRoom } from '@/components/games/maze-battle-game/room';
-import { MazeBattleGameStateVo } from '@/models/game/games/maze-battle/game-state-vo';
+import { MazeBattleGameStateModel } from '@/models/game/games/maze-battle/game-state-model';
 import { PlayersBox } from '@/components/boxes/players-box';
 import { JoinRoomModal } from '@/components/modals/join-room-modal';
 
@@ -170,7 +170,7 @@ const Page = function Page({ params }: { params: Promise<{ id: string }> }) {
             <section className={twMerge(currentGame?.hasStarted() ? 'flex' : 'hidden', 'w-full', 'h-full', 'z-40')}>
               {roomService &&
                 currentGame instanceof MazeBattleGameModel &&
-                currentGameState instanceof MazeBattleGameStateVo &&
+                currentGameState instanceof MazeBattleGameStateModel &&
                 myPlayerId &&
                 hostPlayerId &&
                 currentGame.hasStarted() && (

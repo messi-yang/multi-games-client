@@ -1,12 +1,12 @@
 import { DateVo } from '@/models/global/date-vo';
 import { CommandJson } from '../../../command-json';
 import { CommandModel } from '../../../command-model';
-import { MazeBattleGameStateVo } from '../game-state-vo';
-import { MazeBattleGameCommandNameEnum } from '../game-command-name-enum';
+import { MazeBattleGameStateModel } from '../game-state-model';
+import { MazeBattleCommandNameEnum } from '../game-command-name-enum';
 import { generateUuidV4 } from '@/utils/uuid';
 import { ItemNameEnum } from '../items/item-name-enum';
 
-export type ReverseDirectionMazeBattleGameCommandModelPayload = {
+export type ReverseDirectionMazeBattleCommandModelPayload = {
   characterId: string;
   targetCharacterId: string;
 };
@@ -27,7 +27,7 @@ type Props = {
   targetCharacterId: string;
 };
 
-export class ReverseDirectionMazeBattleGameCommandModel extends CommandModel<MazeBattleGameStateVo> {
+export class ReverseDirectionMazeBattleCommandModel extends CommandModel<MazeBattleGameStateModel> {
   private characterId: string;
 
   private targetCharacterId: string;
@@ -37,26 +37,26 @@ export class ReverseDirectionMazeBattleGameCommandModel extends CommandModel<Maz
       id: props.id,
       gameId: props.gameId,
       playerId: props.playerId,
-      name: MazeBattleGameCommandNameEnum.ReverseDirection,
+      name: MazeBattleCommandNameEnum.ReverseDirection,
       executedAt: props.executedAt,
     });
     this.characterId = props.characterId;
     this.targetCharacterId = props.targetCharacterId;
   }
 
-  static create(props: CreateProps): ReverseDirectionMazeBattleGameCommandModel {
-    return new ReverseDirectionMazeBattleGameCommandModel({
+  static create(props: CreateProps): ReverseDirectionMazeBattleCommandModel {
+    return new ReverseDirectionMazeBattleCommandModel({
       ...props,
       id: generateUuidV4(),
       executedAt: DateVo.now(),
     });
   }
 
-  static load(props: Props): ReverseDirectionMazeBattleGameCommandModel {
-    return new ReverseDirectionMazeBattleGameCommandModel(props);
+  static load(props: Props): ReverseDirectionMazeBattleCommandModel {
+    return new ReverseDirectionMazeBattleCommandModel(props);
   }
 
-  public execute(gameState: MazeBattleGameStateVo): MazeBattleGameStateVo {
+  public execute(gameState: MazeBattleGameStateModel): MazeBattleGameStateModel {
     if (!gameState.isStarted()) {
       return gameState;
     }
@@ -87,7 +87,7 @@ export class ReverseDirectionMazeBattleGameCommandModel extends CommandModel<Maz
     return gameState.updateCharacter(updatedCharacter).updateCharacter(updatedTargetCharacter);
   }
 
-  public getPayload(): ReverseDirectionMazeBattleGameCommandModelPayload {
+  public getPayload(): ReverseDirectionMazeBattleCommandModelPayload {
     return {
       characterId: this.characterId,
       targetCharacterId: this.targetCharacterId,

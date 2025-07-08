@@ -3,7 +3,7 @@ import { EventHandler, EventHandlerSubscriber } from '../../../../event-dispatch
 import { DateVo } from '@/models/global/date-vo';
 import { CommandModel } from '@/models/game/command-model';
 import { GameModel } from '@/models/game/game-model';
-import { GameStateVo } from '@/models/game/game-state-vo';
+import { GameStateModel } from '@/models/game/game-state-model';
 
 export class GameManager {
   private currentGame: GameModel;
@@ -18,7 +18,7 @@ export class GameManager {
 
   private executedCommands: CommandModel[] = [];
 
-  private historyGameState: GameStateVo[] = [];
+  private historyGameState: GameStateModel[] = [];
 
   private executedCommandMap: Record<string, CommandModel | undefined> = {};
 
@@ -51,7 +51,7 @@ export class GameManager {
     return this.currentGame;
   }
 
-  private updateCurrentGameState(gameState: GameStateVo) {
+  private updateCurrentGameState(gameState: GameStateModel) {
     const clonedCurrentGame = this.currentGame.clone();
     clonedCurrentGame.setState(gameState);
     this.currentGame = clonedCurrentGame;

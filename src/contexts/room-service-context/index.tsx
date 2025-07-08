@@ -4,7 +4,7 @@ import { RoomServiceApi } from '@/adapters/apis/room-service-api';
 import { RoomService } from '@/services/room-service';
 import { PlayerModel } from '@/models/player/player-model';
 import { GameModel } from '@/models/game/game-model';
-import { GameStateVo } from '@/models/game/game-state-vo';
+import { GameStateModel } from '@/models/game/game-state-model';
 import { MessageModel } from '@/models/message/message-model';
 import { EventHandler } from '@/event-dispatchers/common/event-handler';
 import { NotificationEventHandler } from '@/event-dispatchers/notification-event-handler';
@@ -15,7 +15,7 @@ type ContextValue = {
   roomService: RoomService | null;
   connectionStatus: ConnectionStatus;
   currentGame: GameModel | null;
-  currentGameState: GameStateVo | null;
+  currentGameState: GameStateModel | null;
   myPlayerId: string | null;
   myPlayer: PlayerModel | null;
   hostPlayerId: string | null;
@@ -75,7 +75,7 @@ export function Provider({ children }: Props) {
     });
   }, [roomService]);
 
-  const [currentGameState, setCurrentGameState] = useState<GameStateVo | null>(null);
+  const [currentGameState, setCurrentGameState] = useState<GameStateModel | null>(null);
   useEffect(() => {
     if (!currentGame) {
       setCurrentGameState(null);

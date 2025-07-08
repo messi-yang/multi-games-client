@@ -1,6 +1,6 @@
 import { GameNameEnum } from '@/models/game/game-name-enum';
 import { MazeBattleGameModel } from '@/models/game/games/maze-battle/game-model';
-import { MazeBattleGameStateJson, MazeBattleGameStateVo } from '@/models/game/games/maze-battle/game-state-vo';
+import { MazeBattleGameStateJson, MazeBattleGameStateModel } from '@/models/game/games/maze-battle/game-state-model';
 import { DateVo } from '@/models/global/date-vo';
 
 type GameDto = {
@@ -15,9 +15,9 @@ type GameDto = {
 
 function parseGameDto(dto: GameDto): MazeBattleGameModel {
   if (dto.name === GameNameEnum.MazeBattle) {
-    const state: MazeBattleGameStateVo = dto.state
-      ? MazeBattleGameStateVo.fromJson(dto.state as MazeBattleGameStateJson)
-      : MazeBattleGameStateVo.createEmpty();
+    const state: MazeBattleGameStateModel = dto.state
+      ? MazeBattleGameStateModel.fromJson(dto.state as MazeBattleGameStateJson)
+      : MazeBattleGameStateModel.createEmpty();
 
     return MazeBattleGameModel.create({
       id: dto.id,

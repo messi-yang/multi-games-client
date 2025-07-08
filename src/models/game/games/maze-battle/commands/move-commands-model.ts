@@ -1,14 +1,14 @@
 import { DateVo } from '@/models/global/date-vo';
 import { CommandJson } from '../../../command-json';
 import { CommandModel } from '../../../command-model';
-import { MazeBattleGameStateVo } from '../game-state-vo';
-import { MazeBattleGameCommandNameEnum } from '../game-command-name-enum';
+import { MazeBattleGameStateModel } from '../game-state-model';
+import { MazeBattleCommandNameEnum } from '../game-command-name-enum';
 import { generateUuidV4 } from '@/utils/uuid';
 import { WallVo } from '../wall-vo';
 import { DirectionEnum } from '../direction-enum';
 import { reverseDirection } from '../utils';
 
-export type MoveMazeBattleGameCommandModelPayload = {
+export type MoveMazeBattleCommandModelPayload = {
   direction: DirectionEnum;
 };
 
@@ -26,7 +26,7 @@ type Props = {
   direction: DirectionEnum;
 };
 
-export class MoveMazeBattleGameCommandModel extends CommandModel<MazeBattleGameStateVo> {
+export class MoveMazeBattleCommandModel extends CommandModel<MazeBattleGameStateModel> {
   private direction: DirectionEnum;
 
   constructor(props: Props) {
@@ -34,25 +34,25 @@ export class MoveMazeBattleGameCommandModel extends CommandModel<MazeBattleGameS
       id: props.id,
       gameId: props.gameId,
       playerId: props.playerId,
-      name: MazeBattleGameCommandNameEnum.Move,
+      name: MazeBattleCommandNameEnum.Move,
       executedAt: props.executedAt,
     });
     this.direction = props.direction;
   }
 
-  static create(props: CreateProps): MoveMazeBattleGameCommandModel {
-    return new MoveMazeBattleGameCommandModel({
+  static create(props: CreateProps): MoveMazeBattleCommandModel {
+    return new MoveMazeBattleCommandModel({
       ...props,
       id: generateUuidV4(),
       executedAt: DateVo.now(),
     });
   }
 
-  static load(props: Props): MoveMazeBattleGameCommandModel {
-    return new MoveMazeBattleGameCommandModel(props);
+  static load(props: Props): MoveMazeBattleCommandModel {
+    return new MoveMazeBattleCommandModel(props);
   }
 
-  public execute(gameState: MazeBattleGameStateVo): MazeBattleGameStateVo {
+  public execute(gameState: MazeBattleGameStateModel): MazeBattleGameStateModel {
     if (!gameState.isStarted()) {
       return gameState;
     }
@@ -106,7 +106,7 @@ export class MoveMazeBattleGameCommandModel extends CommandModel<MazeBattleGameS
     return gameState.updateCharacter(newCharacter);
   }
 
-  public getPayload(): MoveMazeBattleGameCommandModelPayload {
+  public getPayload(): MoveMazeBattleCommandModelPayload {
     return {
       direction: this.direction,
     };

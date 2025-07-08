@@ -1,9 +1,9 @@
 import { DateVo } from '../global/date-vo';
 import { PlayerModel } from '../player/player-model';
 import { GameNameEnum } from './game-name-enum';
-import { GameStateVo } from './game-state-vo';
+import { GameStateModel } from './game-state-model';
 
-type Props<GameState extends GameStateVo = GameStateVo> = {
+type Props<GameState extends GameStateModel = GameStateModel> = {
   id: string;
   roomId: string;
   name: GameNameEnum;
@@ -13,7 +13,7 @@ type Props<GameState extends GameStateVo = GameStateVo> = {
   updatedAt: DateVo;
 };
 
-export abstract class GameModel<GameState extends GameStateVo = GameStateVo> {
+export abstract class GameModel<GameState extends GameStateModel = GameStateModel> {
   protected id: string;
 
   protected roomId: string;

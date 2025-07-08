@@ -1,11 +1,11 @@
 import { DateVo } from '@/models/global/date-vo';
 import { CommandJson } from '../../../command-json';
 import { CommandModel } from '../../../command-model';
-import { MazeBattleGameStateVo } from '../game-state-vo';
-import { MazeBattleGameCommandNameEnum } from '../game-command-name-enum';
+import { MazeBattleGameStateModel } from '../game-state-model';
+import { MazeBattleCommandNameEnum } from '../game-command-name-enum';
 import { generateUuidV4 } from '@/utils/uuid';
 
-export type CancelReverseMazeBattleGameCommandModelPayload = {
+export type CancelReverseMazeBattleCommandModelPayload = {
   characterId: string;
 };
 
@@ -23,7 +23,7 @@ type Props = {
   characterId: string;
 };
 
-export class CancelReverseMazeBattleGameCommandModel extends CommandModel<MazeBattleGameStateVo> {
+export class CancelReverseMazeBattleCommandModel extends CommandModel<MazeBattleGameStateModel> {
   private characterId: string;
 
   constructor(props: Props) {
@@ -31,25 +31,25 @@ export class CancelReverseMazeBattleGameCommandModel extends CommandModel<MazeBa
       id: props.id,
       gameId: props.gameId,
       playerId: props.playerId,
-      name: MazeBattleGameCommandNameEnum.CancelReverse,
+      name: MazeBattleCommandNameEnum.CancelReverse,
       executedAt: props.executedAt,
     });
     this.characterId = props.characterId;
   }
 
-  static create(props: CreateProps): CancelReverseMazeBattleGameCommandModel {
-    return new CancelReverseMazeBattleGameCommandModel({
+  static create(props: CreateProps): CancelReverseMazeBattleCommandModel {
+    return new CancelReverseMazeBattleCommandModel({
       ...props,
       id: generateUuidV4(),
       executedAt: DateVo.now(),
     });
   }
 
-  static load(props: Props): CancelReverseMazeBattleGameCommandModel {
-    return new CancelReverseMazeBattleGameCommandModel(props);
+  static load(props: Props): CancelReverseMazeBattleCommandModel {
+    return new CancelReverseMazeBattleCommandModel(props);
   }
 
-  public execute(gameState: MazeBattleGameStateVo): MazeBattleGameStateVo {
+  public execute(gameState: MazeBattleGameStateModel): MazeBattleGameStateModel {
     if (!gameState.isStarted()) {
       return gameState;
     }
@@ -64,7 +64,7 @@ export class CancelReverseMazeBattleGameCommandModel extends CommandModel<MazeBa
     return gameState.updateCharacter(updatedCharacter);
   }
 
-  public getPayload(): CancelReverseMazeBattleGameCommandModelPayload {
+  public getPayload(): CancelReverseMazeBattleCommandModelPayload {
     return {
       characterId: this.characterId,
     };

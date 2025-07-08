@@ -1,6 +1,6 @@
 import { GameNameEnum } from '../../game-name-enum';
 
-export enum MazeBattleGameCommandNameEnum {
+export enum MazeBattleCommandNameEnum {
   Move = `${GameNameEnum.MazeBattle}#move`,
   SwitchPosition = `${GameNameEnum.MazeBattle}#switch-position`,
   ReverseDirection = `${GameNameEnum.MazeBattle}#reverse-direction`,
