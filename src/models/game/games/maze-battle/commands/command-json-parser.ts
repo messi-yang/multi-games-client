@@ -1,17 +1,20 @@
 import { CommandJson } from '@/models/game/command-json';
 import { CommandModel } from '@/models/game/command-model';
-import { MazeBattleGameMoveCommand, MazeBattleGameMoveCommandPayload } from './move-commands';
+import { MoveMazeBattleGameCommandModel, MoveMazeBattleGameCommandModelPayload } from './move-commands-model';
 import { DateVo } from '@/models/global/date-vo';
 import { MazeBattleGameStateVo } from '../game-state-vo';
 import { MazeBattleGameCommandNameEnum } from '../game-command-name-enum';
-import { MazeBattleGameSwitchPositionCommand, MazeBattleGameSwitchPositionCommandPayload } from './switch-position-command';
-import { MazeBattleGameReverseDirectionCommand, MazeBattleGameReverseDirectionCommandPayload } from './reverse-direction-command';
-import { MazeBattleGameCancelReverseCommand, MazeBattleGameCancelReverseCommandPayload } from './cancel-reverse-command';
+import { SwitchPositionMazeBattleGameCommandModel, SwitchPositionMazeBattleGameCommandModelPayload } from './switch-position-command-model';
+import {
+  ReverseDirectionMazeBattleGameCommandModel,
+  ReverseDirectionMazeBattleGameCommandModelPayload,
+} from './reverse-direction-command-model';
+import { CancelReverseMazeBattleGameCommandModel, CancelReverseMazeBattleGameCommandModelPayload } from './cancel-reverse-command-model';
 
 export function parseMazeBattleGameCommandJson(json: CommandJson): CommandModel<MazeBattleGameStateVo> {
   if (json.name === MazeBattleGameCommandNameEnum.Move) {
-    const payload = json.payload as MazeBattleGameMoveCommandPayload;
-    return MazeBattleGameMoveCommand.load({
+    const payload = json.payload as MoveMazeBattleGameCommandModelPayload;
+    return MoveMazeBattleGameCommandModel.load({
       id: json.id,
       gameId: json.gameId,
       playerId: json.playerId,
@@ -19,8 +22,8 @@ export function parseMazeBattleGameCommandJson(json: CommandJson): CommandModel<
       direction: payload.direction,
     });
   } else if (json.name === MazeBattleGameCommandNameEnum.SwitchPosition) {
-    const payload = json.payload as MazeBattleGameSwitchPositionCommandPayload;
-    return MazeBattleGameSwitchPositionCommand.load({
+    const payload = json.payload as SwitchPositionMazeBattleGameCommandModelPayload;
+    return SwitchPositionMazeBattleGameCommandModel.load({
       id: json.id,
       gameId: json.gameId,
       playerId: json.playerId,
@@ -29,8 +32,8 @@ export function parseMazeBattleGameCommandJson(json: CommandJson): CommandModel<
       targetCharacterId: payload.targetCharacterId,
     });
   } else if (json.name === MazeBattleGameCommandNameEnum.ReverseDirection) {
-    const payload = json.payload as MazeBattleGameReverseDirectionCommandPayload;
-    return MazeBattleGameReverseDirectionCommand.load({
+    const payload = json.payload as ReverseDirectionMazeBattleGameCommandModelPayload;
+    return ReverseDirectionMazeBattleGameCommandModel.load({
       id: json.id,
       gameId: json.gameId,
       playerId: json.playerId,
@@ -39,8 +42,8 @@ export function parseMazeBattleGameCommandJson(json: CommandJson): CommandModel<
       targetCharacterId: payload.targetCharacterId,
     });
   } else if (json.name === MazeBattleGameCommandNameEnum.CancelReverse) {
-    const payload = json.payload as MazeBattleGameCancelReverseCommandPayload;
-    return MazeBattleGameCancelReverseCommand.load({
+    const payload = json.payload as CancelReverseMazeBattleGameCommandModelPayload;
+    return CancelReverseMazeBattleGameCommandModel.load({
       id: json.id,
       gameId: json.gameId,
       playerId: json.playerId,

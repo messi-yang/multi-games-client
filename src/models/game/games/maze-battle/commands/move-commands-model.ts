@@ -8,7 +8,7 @@ import { WallVo } from '../wall-vo';
 import { DirectionEnum } from '../direction-enum';
 import { reverseDirection } from '../utils';
 
-export type MazeBattleGameMoveCommandPayload = {
+export type MoveMazeBattleGameCommandModelPayload = {
   direction: DirectionEnum;
 };
 
@@ -26,7 +26,7 @@ type Props = {
   direction: DirectionEnum;
 };
 
-export class MazeBattleGameMoveCommand extends CommandModel<MazeBattleGameStateVo> {
+export class MoveMazeBattleGameCommandModel extends CommandModel<MazeBattleGameStateVo> {
   private direction: DirectionEnum;
 
   constructor(props: Props) {
@@ -40,16 +40,16 @@ export class MazeBattleGameMoveCommand extends CommandModel<MazeBattleGameStateV
     this.direction = props.direction;
   }
 
-  static create(props: CreateProps): MazeBattleGameMoveCommand {
-    return new MazeBattleGameMoveCommand({
+  static create(props: CreateProps): MoveMazeBattleGameCommandModel {
+    return new MoveMazeBattleGameCommandModel({
       ...props,
       id: generateUuidV4(),
       executedAt: DateVo.now(),
     });
   }
 
-  static load(props: Props): MazeBattleGameMoveCommand {
-    return new MazeBattleGameMoveCommand(props);
+  static load(props: Props): MoveMazeBattleGameCommandModel {
+    return new MoveMazeBattleGameCommandModel(props);
   }
 
   public execute(gameState: MazeBattleGameStateVo): MazeBattleGameStateVo {
@@ -106,7 +106,7 @@ export class MazeBattleGameMoveCommand extends CommandModel<MazeBattleGameStateV
     return gameState.updateCharacter(newCharacter);
   }
 
-  public getPayload(): MazeBattleGameMoveCommandPayload {
+  public getPayload(): MoveMazeBattleGameCommandModelPayload {
     return {
       direction: this.direction,
     };

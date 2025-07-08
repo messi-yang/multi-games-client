@@ -6,7 +6,7 @@ import { MazeBattleGameCommandNameEnum } from '../game-command-name-enum';
 import { generateUuidV4 } from '@/utils/uuid';
 import { ItemNameEnum } from '../items/item-name-enum';
 
-export type MazeBattleGameSwitchPositionCommandPayload = {
+export type SwitchPositionMazeBattleGameCommandModelPayload = {
   characterId: string;
   targetCharacterId: string;
 };
@@ -27,7 +27,7 @@ type Props = {
   targetCharacterId: string;
 };
 
-export class MazeBattleGameSwitchPositionCommand extends CommandModel<MazeBattleGameStateVo> {
+export class SwitchPositionMazeBattleGameCommandModel extends CommandModel<MazeBattleGameStateVo> {
   private characterId: string;
 
   private targetCharacterId: string;
@@ -44,16 +44,16 @@ export class MazeBattleGameSwitchPositionCommand extends CommandModel<MazeBattle
     this.targetCharacterId = props.targetCharacterId;
   }
 
-  static create(props: CreateProps): MazeBattleGameSwitchPositionCommand {
-    return new MazeBattleGameSwitchPositionCommand({
+  static create(props: CreateProps): SwitchPositionMazeBattleGameCommandModel {
+    return new SwitchPositionMazeBattleGameCommandModel({
       ...props,
       id: generateUuidV4(),
       executedAt: DateVo.now(),
     });
   }
 
-  static load(props: Props): MazeBattleGameSwitchPositionCommand {
-    return new MazeBattleGameSwitchPositionCommand(props);
+  static load(props: Props): SwitchPositionMazeBattleGameCommandModel {
+    return new SwitchPositionMazeBattleGameCommandModel(props);
   }
 
   public execute(gameState: MazeBattleGameStateVo): MazeBattleGameStateVo {
@@ -89,7 +89,7 @@ export class MazeBattleGameSwitchPositionCommand extends CommandModel<MazeBattle
     return gameState.updateCharacter(updatedCharacter).updateCharacter(updatedTargetCharacter);
   }
 
-  public getPayload(): MazeBattleGameSwitchPositionCommandPayload {
+  public getPayload(): SwitchPositionMazeBattleGameCommandModelPayload {
     return {
       characterId: this.characterId,
       targetCharacterId: this.targetCharacterId,

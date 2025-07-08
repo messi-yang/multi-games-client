@@ -5,7 +5,7 @@ import { MazeBattleGameStateVo } from '../game-state-vo';
 import { MazeBattleGameCommandNameEnum } from '../game-command-name-enum';
 import { generateUuidV4 } from '@/utils/uuid';
 
-export type MazeBattleGameCancelReverseCommandPayload = {
+export type CancelReverseMazeBattleGameCommandModelPayload = {
   characterId: string;
 };
 
@@ -23,7 +23,7 @@ type Props = {
   characterId: string;
 };
 
-export class MazeBattleGameCancelReverseCommand extends CommandModel<MazeBattleGameStateVo> {
+export class CancelReverseMazeBattleGameCommandModel extends CommandModel<MazeBattleGameStateVo> {
   private characterId: string;
 
   constructor(props: Props) {
@@ -37,16 +37,16 @@ export class MazeBattleGameCancelReverseCommand extends CommandModel<MazeBattleG
     this.characterId = props.characterId;
   }
 
-  static create(props: CreateProps): MazeBattleGameCancelReverseCommand {
-    return new MazeBattleGameCancelReverseCommand({
+  static create(props: CreateProps): CancelReverseMazeBattleGameCommandModel {
+    return new CancelReverseMazeBattleGameCommandModel({
       ...props,
       id: generateUuidV4(),
       executedAt: DateVo.now(),
     });
   }
 
-  static load(props: Props): MazeBattleGameCancelReverseCommand {
-    return new MazeBattleGameCancelReverseCommand(props);
+  static load(props: Props): CancelReverseMazeBattleGameCommandModel {
+    return new CancelReverseMazeBattleGameCommandModel(props);
   }
 
   public execute(gameState: MazeBattleGameStateVo): MazeBattleGameStateVo {
@@ -64,7 +64,7 @@ export class MazeBattleGameCancelReverseCommand extends CommandModel<MazeBattleG
     return gameState.updateCharacter(updatedCharacter);
   }
 
-  public getPayload(): MazeBattleGameCancelReverseCommandPayload {
+  public getPayload(): CancelReverseMazeBattleGameCommandModelPayload {
     return {
       characterId: this.characterId,
     };

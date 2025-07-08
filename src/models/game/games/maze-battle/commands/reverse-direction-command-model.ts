@@ -6,7 +6,7 @@ import { MazeBattleGameCommandNameEnum } from '../game-command-name-enum';
 import { generateUuidV4 } from '@/utils/uuid';
 import { ItemNameEnum } from '../items/item-name-enum';
 
-export type MazeBattleGameReverseDirectionCommandPayload = {
+export type ReverseDirectionMazeBattleGameCommandModelPayload = {
   characterId: string;
   targetCharacterId: string;
 };
@@ -27,7 +27,7 @@ type Props = {
   targetCharacterId: string;
 };
 
-export class MazeBattleGameReverseDirectionCommand extends CommandModel<MazeBattleGameStateVo> {
+export class ReverseDirectionMazeBattleGameCommandModel extends CommandModel<MazeBattleGameStateVo> {
   private characterId: string;
 
   private targetCharacterId: string;
@@ -44,16 +44,16 @@ export class MazeBattleGameReverseDirectionCommand extends CommandModel<MazeBatt
     this.targetCharacterId = props.targetCharacterId;
   }
 
-  static create(props: CreateProps): MazeBattleGameReverseDirectionCommand {
-    return new MazeBattleGameReverseDirectionCommand({
+  static create(props: CreateProps): ReverseDirectionMazeBattleGameCommandModel {
+    return new ReverseDirectionMazeBattleGameCommandModel({
       ...props,
       id: generateUuidV4(),
       executedAt: DateVo.now(),
     });
   }
 
-  static load(props: Props): MazeBattleGameReverseDirectionCommand {
-    return new MazeBattleGameReverseDirectionCommand(props);
+  static load(props: Props): ReverseDirectionMazeBattleGameCommandModel {
+    return new ReverseDirectionMazeBattleGameCommandModel(props);
   }
 
   public execute(gameState: MazeBattleGameStateVo): MazeBattleGameStateVo {
@@ -87,7 +87,7 @@ export class MazeBattleGameReverseDirectionCommand extends CommandModel<MazeBatt
     return gameState.updateCharacter(updatedCharacter).updateCharacter(updatedTargetCharacter);
   }
 
-  public getPayload(): MazeBattleGameReverseDirectionCommandPayload {
+  public getPayload(): ReverseDirectionMazeBattleGameCommandModelPayload {
     return {
       characterId: this.characterId,
       targetCharacterId: this.targetCharacterId,

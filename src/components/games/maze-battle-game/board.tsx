@@ -5,17 +5,17 @@ import { MazeBattleGameModel } from '@/models/game/games/maze-battle/game-model'
 import { CommandModel } from '@/models/game/command-model';
 import { MazeBattleGameStateVo } from '@/models/game/games/maze-battle/game-state-vo';
 import { MazeCanvas } from './maze-canvas';
-import { MazeBattleGameMoveCommand } from '@/models/game/games/maze-battle/commands/move-commands';
+import { MoveMazeBattleGameCommandModel } from '@/models/game/games/maze-battle/commands/move-commands-model';
 import { useHotKeys } from '@/hooks/use-hot-keys';
 import { DirectionEnum } from '@/models/game/games/maze-battle/direction-enum';
 import { Text } from '@/components/texts/text';
 import { MazeBattleGameCharacterCard } from './character-card';
 import { ItemNameEnum } from '@/models/game/games/maze-battle/items/item-name-enum';
-import { MazeBattleGameSwitchPositionCommand } from '@/models/game/games/maze-battle/commands/switch-position-command';
-import { MazeBattleGameReverseDirectionCommand } from '@/models/game/games/maze-battle/commands/reverse-direction-command';
+import { SwitchPositionMazeBattleGameCommandModel } from '@/models/game/games/maze-battle/commands/switch-position-command-model';
+import { ReverseDirectionMazeBattleGameCommandModel } from '@/models/game/games/maze-battle/commands/reverse-direction-command-model';
 import { RoomService } from '@/services/room-service';
 import { NotificationEventHandler } from '@/event-dispatchers/notification-event-handler';
-import { MazeBattleGameCancelReverseCommand } from '@/models/game/games/maze-battle/commands/cancel-reverse-command';
+import { CancelReverseMazeBattleGameCommandModel } from '@/models/game/games/maze-battle/commands/cancel-reverse-command-model';
 
 type Props = {
   roomService: RoomService;
@@ -94,16 +94,16 @@ export function MazeBattleGameBoard({ roomService, myPlayerId, game, gameState, 
       if (!dir) return;
       switch (dir) {
         case 'left':
-          onCommand(MazeBattleGameMoveCommand.create({ gameId, playerId: myPlayerId, direction: DirectionEnum.Left }));
+          onCommand(MoveMazeBattleGameCommandModel.create({ gameId, playerId: myPlayerId, direction: DirectionEnum.Left }));
           break;
         case 'right':
-          onCommand(MazeBattleGameMoveCommand.create({ gameId, playerId: myPlayerId, direction: DirectionEnum.Right }));
+          onCommand(MoveMazeBattleGameCommandModel.create({ gameId, playerId: myPlayerId, direction: DirectionEnum.Right }));
           break;
         case 'up':
-          onCommand(MazeBattleGameMoveCommand.create({ gameId, playerId: myPlayerId, direction: DirectionEnum.Up }));
+          onCommand(MoveMazeBattleGameCommandModel.create({ gameId, playerId: myPlayerId, direction: DirectionEnum.Up }));
           break;
         case 'down':
-          onCommand(MazeBattleGameMoveCommand.create({ gameId, playerId: myPlayerId, direction: DirectionEnum.Down }));
+          onCommand(MoveMazeBattleGameCommandModel.create({ gameId, playerId: myPlayerId, direction: DirectionEnum.Down }));
           break;
         default:
           break;
@@ -155,7 +155,7 @@ export function MazeBattleGameBoard({ roomService, myPlayerId, game, gameState, 
 
     if (item.getName() === ItemNameEnum.PositionSwitcher) {
       onCommand(
-        MazeBattleGameSwitchPositionCommand.create({
+        SwitchPositionMazeBattleGameCommandModel.create({
           gameId,
           playerId: myPlayerId,
           characterId: myCharacter.getId(),
@@ -164,7 +164,7 @@ export function MazeBattleGameBoard({ roomService, myPlayerId, game, gameState, 
       );
     } else if (item.getName() === ItemNameEnum.DirectionReverser) {
       onCommand(
-        MazeBattleGameReverseDirectionCommand.create({
+        ReverseDirectionMazeBattleGameCommandModel.create({
           gameId,
           playerId: myPlayerId,
           characterId: myCharacter.getId(),
@@ -189,14 +189,14 @@ export function MazeBattleGameBoard({ roomService, myPlayerId, game, gameState, 
 
   const cancelReverse = useCallback(() => {
     if (!myCharacterId) return;
-    onCommand(MazeBattleGameCancelReverseCommand.create({ gameId, playerId: myPlayerId, characterId: myCharacterId }));
+    onCommand(CancelReverseMazeBattleGameCommandModel.create({ gameId, playerId: myPlayerId, characterId: myCharacterId }));
   }, [myCharacterId, gameId, myPlayerId, onCommand]);
 
   const cancelReverseDebouncer = useMemo(() => debounce(cancelReverse, 5000), [cancelReverse]);
 
   useEffect(() => {
     return roomService.subscribe('COMMAND_EXECUTED', (command) => {
-      if (command instanceof MazeBattleGameReverseDirectionCommand) {
+      if (command instanceof ReverseDirectionMazeBattleGameCommandModel) {
         const characterName = gameState.getCharacterName(command.getCharacterId());
 
         const targetCharacterId = command.getTargetCharacterId();
@@ -207,7 +207,7 @@ export function MazeBattleGameBoard({ roomService, myPlayerId, game, gameState, 
         if (targetCharacterId === myCharacterId) {
           cancelReverseDebouncer();
         }
-      } else if (command instanceof MazeBattleGameSwitchPositionCommand) {
+      } else if (command instanceof SwitchPositionMazeBattleGameCommandModel) {
         const characterName = gameState.getCharacterName(command.getCharacterId());
 
         const targetCharacterId = command.getTargetCharacterId();
