@@ -56,35 +56,42 @@ export class ReverseDirectionMazeBattleCommandModel extends CommandModel<MazeBat
     return new ReverseDirectionMazeBattleCommandModel(props);
   }
 
-  public execute(gameState: MazeBattleGameStateModel): MazeBattleGameStateModel {
+  public execute(gameState: MazeBattleGameStateModel): boolean {
     if (!gameState.isStarted()) {
-      return gameState;
+      return false;
     }
 
     const character = gameState.getCharacter(this.playerId);
     if (!character) {
-      return gameState;
+      return false;
     }
 
     const targetCharacter = gameState.getCharacter(this.targetCharacterId);
     if (!targetCharacter) {
-      return gameState;
+      return false;
     }
 
     if (character.getId() === targetCharacter.getId()) {
-      return gameState;
+      return false;
     }
 
-    const item = character.getFirstHeldItem();
-    if (!item || item.getName() !== ItemNameEnum.DirectionReverser) {
-      return gameState;
+    const firstHeldItem = character.getFirstHeldItem();
+    if (!firstHeldItem || firstHeldItem.getName() !== ItemNameEnum.DirectionReverser) {
+      return false;
     }
 
     const updatedCharacter = character.removeFirstHeldItem();
 
     const updatedTargetCharacter = targetCharacter.setReversed(true);
+    gameState.updateCharacter(updatedCharacter);
+    gameState.updateCharacter(updatedTargetCharacter);
 
-    return gameState.updateCharacter(updatedCharacter).updateCharacter(updatedTargetCharacter);
+    this.setUndoAction(() => {
+      gameState.updateCharacter(character);
+      gameState.updateCharacter(targetCharacter);
+    });
+
+    return true;
   }
 
   public getPayload(): ReverseDirectionMazeBattleCommandModelPayload {

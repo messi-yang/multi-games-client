@@ -3,7 +3,6 @@ import { EventHandler, EventHandlerSubscriber } from '../../../../event-dispatch
 import { DateVo } from '@/models/global/date-vo';
 import { CommandModel } from '@/models/game/command-model';
 import { GameModel } from '@/models/game/game-model';
-import { GameStateModel } from '@/models/game/game-state-model';
 
 export class GameManager {
   private currentGame: GameModel;
@@ -18,8 +17,6 @@ export class GameManager {
 
   private executedCommands: CommandModel[] = [];
 
-  private historyGameState: GameStateModel[] = [];
-
   private executedCommandMap: Record<string, CommandModel | undefined> = {};
 
   private failedCommandMap: Record<string, true | undefined> = {};
@@ -30,18 +27,15 @@ export class GameManager {
 
   constructor(currentGame: GameModel) {
     this.currentGame = currentGame;
-    this.initializeCommands(currentGame);
+    this.initializeCommands();
   }
 
   static create(currentGame: GameModel) {
     return new GameManager(currentGame);
   }
 
-  private initializeCommands(currentGame: GameModel) {
-    const currentGameState = currentGame.getState();
-
+  private initializeCommands() {
     this.executedCommands = [];
-    this.historyGameState = [currentGameState];
     this.executedCommandMap = {};
     this.failedCommandMap = {};
     this.isReplayingCommands = false;
@@ -49,12 +43,6 @@ export class GameManager {
 
   public getCurrentGame(): GameModel {
     return this.currentGame;
-  }
-
-  private updateCurrentGameState(gameState: GameStateModel) {
-    const clonedCurrentGame = this.currentGame.clone();
-    clonedCurrentGame.setState(gameState);
-    this.currentGame = clonedCurrentGame;
   }
 
   public updateCurrentGame(game: GameModel) {
@@ -68,13 +56,13 @@ export class GameManager {
 
   public startGame(game: GameModel) {
     this.currentGame = game;
-    this.initializeCommands(game);
+    this.initializeCommands();
     this.publishCurrentGameUpdatedEvent(game);
   }
 
   public setupNewGame(game: GameModel) {
     this.currentGame = game;
-    this.initializeCommands(game);
+    this.initializeCommands();
     this.publishNewGameSetupEvent(game);
   }
 
@@ -101,13 +89,10 @@ export class GameManager {
   }
 
   private addExecutedCommand(command: CommandModel) {
-    const currentGameState = this.currentGame.getState();
-    const newGameState = command.execute(currentGameState);
+    command.execute(this.currentGame.getState());
 
     this.executedCommands.push(command);
     this.executedCommandMap[command.getId()] = command;
-    this.historyGameState.push(newGameState);
-    this.updateCurrentGameState(newGameState);
   }
 
   private popExecutedCommand(): CommandModel | null {
@@ -115,10 +100,7 @@ export class GameManager {
     if (!executedCommand) return null;
     delete this.executedCommandMap[executedCommand.getId()];
 
-    this.historyGameState.pop();
-
-    const lastLastGameState = this.historyGameState[this.historyGameState.length - 1];
-    this.updateCurrentGameState(lastLastGameState);
+    executedCommand.undo();
 
     return executedCommand;
   }

@@ -56,28 +56,28 @@ export class SwitchPositionMazeBattleCommandModel extends CommandModel<MazeBattl
     return new SwitchPositionMazeBattleCommandModel(props);
   }
 
-  public execute(gameState: MazeBattleGameStateModel): MazeBattleGameStateModel {
+  public execute(gameState: MazeBattleGameStateModel): boolean {
     if (!gameState.isStarted()) {
-      return gameState;
+      return false;
     }
 
     const character = gameState.getCharacter(this.playerId);
     if (!character) {
-      return gameState;
+      return false;
     }
 
     const targetCharacter = gameState.getCharacter(this.targetCharacterId);
     if (!targetCharacter) {
-      return gameState;
+      return false;
     }
 
     if (character.getId() === targetCharacter.getId()) {
-      return gameState;
+      return false;
     }
 
-    const item = character.getFirstHeldItem();
-    if (!item || item.getName() !== ItemNameEnum.PositionSwitcher) {
-      return gameState;
+    const firstHeldItem = character.getFirstHeldItem();
+    if (!firstHeldItem || firstHeldItem.getName() !== ItemNameEnum.PositionSwitcher) {
+      return false;
     }
 
     const characterPosition = character.getPosition();
@@ -86,7 +86,15 @@ export class SwitchPositionMazeBattleCommandModel extends CommandModel<MazeBattl
 
     const updatedTargetCharacter = targetCharacter.updatePosition(characterPosition);
 
-    return gameState.updateCharacter(updatedCharacter).updateCharacter(updatedTargetCharacter);
+    gameState.updateCharacter(updatedCharacter);
+    gameState.updateCharacter(updatedTargetCharacter);
+
+    this.setUndoAction(() => {
+      gameState.updateCharacter(character);
+      gameState.updateCharacter(targetCharacter);
+    });
+
+    return true;
   }
 
   public getPayload(): SwitchPositionMazeBattleCommandModelPayload {

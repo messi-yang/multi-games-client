@@ -1,46 +1,45 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Application, Sprite, Container, Assets, Texture, Graphics } from 'pixi.js';
-import { CharacterVo } from '@/models/game/games/maze-battle/character-vo';
-import { MazeVo } from '@/models/game/games/maze-battle/maze-vo';
 import { WallVo } from '@/models/game/games/maze-battle/wall-vo';
-import { ItemBoxVo } from '@/models/game/games/maze-battle/item-box-vo';
 import { Text } from '@/components/texts/text';
+import { MazeBattleGameStateModel } from '@/models/game/games/maze-battle/game-state-model';
 
 const CELL_SIZE = 14;
 
 type Props = {
-  maze: MazeVo;
-  characters: CharacterVo[];
-  myCharacter: CharacterVo | null;
-  itemBoxes: ItemBoxVo[];
-  countdown: number;
+  myPlayerId: string | null;
+  gameState: MazeBattleGameStateModel;
 };
 
-export function MazeCanvas({ maze, characters, myCharacter, itemBoxes, countdown }: Props) {
+export function MazeCanvas({ myPlayerId, gameState }: Props) {
   const [appContainerElem, setAppContainerElem] = useState<HTMLDivElement | null>(null);
   const [application, setApplication] = useState<Application | null>(null);
 
-  const mazeWidth = useMemo(() => maze.getWidth() * CELL_SIZE, [maze]);
-  const mazeHeight = useMemo(() => maze.getHeight() * CELL_SIZE, [maze]);
+  const [countdown, setCountdown] = useState<number>(gameState.getCountdown());
 
   useEffect(() => {
+    setCountdown(gameState.getCountdown());
+    return gameState.subscribeCountdownUpdatedEvent((newCountdown) => {
+      setCountdown(newCountdown);
+    });
+  }, [gameState]);
+
+  // Initialize Pixi.js application
+  useEffect(() => {
     if (!appContainerElem) return;
-    if (application) return;
 
-    const newApp = new Application();
-    setApplication(newApp);
+    const newApplication = new Application();
 
-    newApp
+    newApplication
       .init({
         background: 0x000000,
-        width: mazeWidth,
-        height: mazeHeight,
         antialias: true,
       })
       .then(() => {
-        appContainerElem.appendChild(newApp.canvas);
+        setApplication(newApplication);
+        appContainerElem.appendChild(newApplication.canvas);
       });
-  }, [appContainerElem, application, mazeWidth, mazeHeight]);
+  }, [appContainerElem]);
 
   const [stoneAsset, setStoneAsset] = useState<Texture | null>(null);
   useEffect(() => {
@@ -83,25 +82,36 @@ export function MazeCanvas({ maze, characters, myCharacter, itemBoxes, countdown
   }, [application, maskAsset]);
 
   const [seceneContainer, setSeceneContainer] = useState<Container | null>(null);
+
+  // Initialize scene container
   useEffect(() => {
-    if (!application) return () => {};
+    if (!application) return;
 
     const newSeceneContainer = new Container();
     newSeceneContainer.zIndex = 0;
-    setSeceneContainer(newSeceneContainer);
     application.stage.addChild(newSeceneContainer);
+    setSeceneContainer(newSeceneContainer);
+  }, [application, gameState]);
 
-    return () => {
-      application.stage.removeChild(newSeceneContainer);
-    };
-  }, [application]);
-
+  // Resize renderer when game state changes
   useEffect(() => {
-    if (!application) return () => {};
-    if (!grassAsset) return () => {};
+    if (!application) return;
+
+    const maze = gameState.getMaze();
+    const mazeWidth = maze.getWidth() * CELL_SIZE;
+    const mazeHeight = maze.getHeight() * CELL_SIZE;
+    application.renderer.resize(mazeWidth, mazeHeight);
+  }, [application, gameState]);
+
+  // Render grass
+  useEffect(() => {
+    if (!application || !grassAsset) return () => {};
 
     const newGrassContainer = new Container();
     newGrassContainer.zIndex = -1;
+    application.stage.addChild(newGrassContainer);
+
+    const maze = gameState.getMaze();
 
     maze.iterateCells((position) => {
       const grassSprite = new Sprite(grassAsset);
@@ -112,32 +122,19 @@ export function MazeCanvas({ maze, characters, myCharacter, itemBoxes, countdown
       newGrassContainer.addChild(grassSprite);
     });
 
-    application.stage.addChild(newGrassContainer);
-
     return () => {
       application.stage.removeChild(newGrassContainer);
     };
-  }, [application, grassAsset]);
+  }, [application, grassAsset, gameState]);
 
-  const [mazeContainer, setMazeContainer] = useState<Container | null>(null);
+  // Rerender maze when game state changes
   useEffect(() => {
-    if (!seceneContainer) return () => {};
+    if (!stoneAsset || !dirtAsset || !seceneContainer) return () => {};
 
     const newMazeContainer = new Container();
     newMazeContainer.zIndex = 1;
-    setMazeContainer(newMazeContainer);
 
-    seceneContainer.addChild(newMazeContainer);
-
-    return () => {
-      seceneContainer.removeChild(newMazeContainer);
-    };
-  }, [seceneContainer]);
-
-  useEffect(() => {
-    if (!stoneAsset) return;
-    if (!dirtAsset) return;
-    if (!mazeContainer) return;
+    const maze = gameState.getMaze();
 
     maze.iterateCells((position, cell) => {
       if (cell instanceof WallVo) {
@@ -146,51 +143,34 @@ export function MazeCanvas({ maze, characters, myCharacter, itemBoxes, countdown
         stoneSprite.y = position.getY() * CELL_SIZE;
         stoneSprite.width = CELL_SIZE;
         stoneSprite.height = CELL_SIZE;
-        mazeContainer.addChild(stoneSprite);
+        newMazeContainer.addChild(stoneSprite);
       } else {
         const dirtSprite = new Sprite(dirtAsset);
         dirtSprite.x = position.getX() * CELL_SIZE;
         dirtSprite.y = position.getY() * CELL_SIZE;
         dirtSprite.width = CELL_SIZE;
         dirtSprite.height = CELL_SIZE;
-        mazeContainer.addChild(dirtSprite);
+        newMazeContainer.addChild(dirtSprite);
       }
     });
-  }, [maze, stoneAsset, dirtAsset, mazeContainer]);
+    seceneContainer.addChild(newMazeContainer);
+
+    return () => {
+      seceneContainer.removeChild(newMazeContainer);
+    };
+  }, [gameState, stoneAsset, dirtAsset, seceneContainer]);
 
   const characterContainerMapRef = useRef<Map<string, Container>>(new Map());
-  const [charactersContainter, setCharactersContainter] = useState<Container | null>(null);
   useEffect(() => {
     if (!seceneContainer) return () => {};
 
+    const characters = gameState.getCharacters();
+
     const newCharactersContainer = new Container();
     newCharactersContainer.zIndex = 3;
-    setCharactersContainter(newCharactersContainer);
     seceneContainer.addChild(newCharactersContainer);
 
-    return () => {
-      seceneContainer.removeChild(newCharactersContainer);
-    };
-  }, [seceneContainer]);
-
-  useEffect(() => {
-    if (!charactersContainter) return;
-
     characters.forEach((character) => {
-      const existingCharacterContainer = characterContainerMapRef.current.get(character.getId());
-      if (existingCharacterContainer) {
-        existingCharacterContainer.x = character.getPosition().getX() * CELL_SIZE;
-        existingCharacterContainer.y = character.getPosition().getY() * CELL_SIZE;
-        if (character.isReversed()) {
-          existingCharacterContainer.pivot.set(CELL_SIZE, CELL_SIZE);
-          existingCharacterContainer.rotation = Math.PI;
-        } else {
-          existingCharacterContainer.pivot.set(0, 0);
-          existingCharacterContainer.rotation = 0;
-        }
-        return;
-      }
-
       const characterContainer = new Container();
       characterContainer.width = CELL_SIZE;
       characterContainer.height = CELL_SIZE;
@@ -212,18 +192,39 @@ export function MazeCanvas({ maze, characters, myCharacter, itemBoxes, countdown
 
       characterContainerMapRef.current.set(character.getId(), characterContainer);
       characterContainer.addChild(characterCircle);
-      charactersContainter.addChild(characterContainer);
+      newCharactersContainer.addChild(characterContainer);
     });
 
-    characterContainerMapRef.current.forEach((characterContainer, characterId) => {
-      if (!characters.some((character) => character.getId() === characterId)) {
-        charactersContainter.removeChild(characterContainer);
-        characterContainerMapRef.current.delete(characterId);
+    return () => {
+      characterContainerMapRef.current.forEach((characterContainer) => {
+        newCharactersContainer.removeChild(characterContainer);
+        characterContainer.destroy();
+      });
+      characterContainerMapRef.current.clear();
+
+      seceneContainer.removeChild(newCharactersContainer);
+    };
+  }, [seceneContainer, gameState]);
+
+  useEffect(() => {
+    return gameState.subscribeCharacterUpdatedEvent((character) => {
+      const characterContainer = characterContainerMapRef.current.get(character.getId());
+      if (!characterContainer) return;
+
+      characterContainer.x = character.getPosition().getX() * CELL_SIZE;
+      characterContainer.y = character.getPosition().getY() * CELL_SIZE;
+      if (character.isReversed()) {
+        characterContainer.pivot.set(CELL_SIZE, CELL_SIZE);
+        characterContainer.rotation = Math.PI;
+      } else {
+        characterContainer.pivot.set(0, 0);
+        characterContainer.rotation = 0;
       }
     });
-  }, [characters, charactersContainter]);
+  }, [gameState]);
 
   const [itemBoxesContainer, setItemBoxesContainer] = useState<Container | null>(null);
+  const itemBoxObjectMapRef = useRef<Map<string, Sprite>>(new Map());
   useEffect(() => {
     if (!seceneContainer) return () => {};
 
@@ -237,12 +238,10 @@ export function MazeCanvas({ maze, characters, myCharacter, itemBoxes, countdown
     };
   }, [seceneContainer]);
 
-  const itemBoxObjectMapRef = useRef<Map<string, Sprite>>(new Map());
   useEffect(() => {
-    if (!application) return;
-    if (!itemBoxAsset) return;
-    if (!mazeContainer) return;
-    if (!itemBoxesContainer) return;
+    if (!itemBoxAsset || !itemBoxesContainer) return () => {};
+
+    const itemBoxes = gameState.getItemBoxes();
 
     itemBoxes.forEach((itemBox) => {
       const existingItemBoxObject = itemBoxObjectMapRef.current.get(itemBox.getPosition().toString());
@@ -261,24 +260,37 @@ export function MazeCanvas({ maze, characters, myCharacter, itemBoxes, countdown
       itemBoxesContainer.addChild(itemBoxSprite);
     });
 
-    itemBoxObjectMapRef.current.forEach((itemBoxObject, itemBoxPosition) => {
-      if (!itemBoxes.some((itemBox) => itemBox.getPosition().toString() === itemBoxPosition)) {
+    return () => {
+      itemBoxObjectMapRef.current.forEach((itemBoxObject) => {
         itemBoxesContainer.removeChild(itemBoxObject);
-        itemBoxObjectMapRef.current.delete(itemBoxPosition);
-      }
-    });
-  }, [application, itemBoxes, itemBoxAsset, mazeContainer, seceneContainer, itemBoxesContainer]);
+        itemBoxObject.destroy();
+      });
+      itemBoxObjectMapRef.current.clear();
+    };
+  }, [itemBoxAsset, itemBoxesContainer, gameState]);
 
+  useEffect(() => {
+    return gameState.subscribeItemBoxRemovedEvent((position) => {
+      const itemBoxObject = itemBoxObjectMapRef.current.get(position.toString());
+      if (!itemBoxObject) return;
+
+      itemBoxObject.destroy();
+      itemBoxObjectMapRef.current.delete(position.toString());
+    });
+  }, [gameState]);
+
+  // Render mask
   const [maskContainer, setMaskContainer] = useState<Container | null>(null);
   useEffect(() => {
-    if (!seceneContainer || !maskAsset || !!maskContainer) return () => {};
-    if (!myCharacter) {
-      // Observer won't have a mask
-      return () => {};
-    }
+    if (!seceneContainer || !maskAsset) return () => {};
+
+    const maze = gameState.getMaze();
+    const mazeWidth = maze.getWidth() * CELL_SIZE;
+    const mazeHeight = maze.getHeight() * CELL_SIZE;
 
     const newMaskContainer = new Container();
     newMaskContainer.zIndex = 4;
+    newMaskContainer.alpha = 0;
 
     const maskSprite = new Sprite(maskAsset);
     maskSprite.x = -CELL_SIZE * 5;
@@ -322,15 +334,34 @@ export function MazeCanvas({ maze, characters, myCharacter, itemBoxes, countdown
     return () => {
       seceneContainer.removeChild(newMaskContainer);
     };
-  }, [seceneContainer, maskAsset, mazeWidth, mazeHeight]);
+  }, [seceneContainer, maskAsset]);
 
-  useEffect(() => {
-    if (!maskContainer || !myCharacter) return;
+  const updateMask = useCallback(() => {
+    if (!maskContainer || !myPlayerId) return;
+
+    const myCharacter = gameState.getCharacter(myPlayerId);
+    if (!myCharacter) return;
 
     maskContainer.x = myCharacter.getPosition().getX() * CELL_SIZE;
     maskContainer.y = myCharacter.getPosition().getY() * CELL_SIZE;
     maskContainer.alpha = countdown > 0 ? 0 : 1;
-  }, [maskContainer, myCharacter, countdown]);
+  }, [maskContainer, myPlayerId, countdown, gameState]);
+
+  useEffect(() => {
+    updateMask();
+    const unsubscribeCharacterUpdatedEvent = gameState.subscribeCharacterUpdatedEvent(() => {
+      updateMask();
+    });
+
+    const unsubscribeCountdownUpdatedEvent = gameState.subscribeCountdownUpdatedEvent(() => {
+      updateMask();
+    });
+
+    return () => {
+      unsubscribeCharacterUpdatedEvent();
+      unsubscribeCountdownUpdatedEvent();
+    };
+  }, [updateMask, gameState]);
 
   return (
     <div className="w-full h-full relative">

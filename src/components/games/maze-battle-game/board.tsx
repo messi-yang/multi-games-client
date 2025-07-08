@@ -16,6 +16,7 @@ import { ReverseDirectionMazeBattleCommandModel } from '@/models/game/games/maze
 import { RoomService } from '@/services/room-service';
 import { NotificationEventHandler } from '@/event-dispatchers/notification-event-handler';
 import { CancelReverseMazeBattleCommandModel } from '@/models/game/games/maze-battle/commands/cancel-reverse-command-model';
+import { CharacterVo } from '@/models/game/games/maze-battle/character-vo';
 
 type Props = {
   roomService: RoomService;
@@ -30,38 +31,24 @@ export function MazeBattleGameBoard({ roomService, myPlayerId, game, gameState, 
 
   const gameId = useMemo(() => game.getId(), [game]);
 
-  const maze = useMemo(() => gameState.getMaze(), [gameState]);
+  const [characters, setCharacters] = useState<CharacterVo[]>([]);
 
-  const characters = useMemo(() => gameState.getCharacters(), [gameState]);
+  useEffect(() => {
+    setCharacters(gameState.getCharacters());
+
+    return gameState.subscribeCharacterUpdatedEvent((character) => {
+      setCharacters((prevCharacters) => prevCharacters.map((c) => (c.getId() === character.getId() ? character : c)));
+    });
+  }, [gameState]);
 
   const myCharacterId = useMemo(() => myPlayerId, [myPlayerId]);
 
   const myCharacter = useMemo(
-    () => characters.find((character) => character.getId() === myCharacterId) || null,
+    () => characters.find((character) => character.getId() === myCharacterId) ?? null,
     [characters, myCharacterId]
   );
 
   const otherCharacters = useMemo(() => characters.filter((character) => character.getId() !== myCharacterId), [characters, myCharacterId]);
-
-  const itemBoxes = useMemo(() => gameState.getItemBoxes(), [gameState]);
-
-  const [countdown, setCountdown] = useState<number>(gameState.getCountdown());
-
-  useEffect(() => {
-    if (gameState.isStarted()) {
-      setCountdown(-1);
-      return () => {};
-    }
-
-    const interval = setInterval(() => {
-      setCountdown(gameState.getCountdown());
-
-      if (gameState.isStarted()) {
-        clearInterval(interval);
-      }
-    }, 100);
-    return () => clearInterval(interval);
-  }, [gameState]);
 
   const [direction, setDirection] = useState<DirectionEnum | null>(null);
 
@@ -221,7 +208,7 @@ export function MazeBattleGameBoard({ roomService, myPlayerId, game, gameState, 
   return (
     <div className={classnames('w-full', 'h-full', 'relative', 'overflow-hidden', 'flex', 'flex-row', 'p-4', 'gap-4')}>
       <div className="grow">
-        <MazeCanvas maze={maze} characters={characters} myCharacter={myCharacter} itemBoxes={itemBoxes} countdown={countdown} />
+        <MazeCanvas myPlayerId={myPlayerId} gameState={gameState} />
       </div>
       <div className="w-64 flex flex-col gap-4">
         <div className="flex flex-col gap-2">

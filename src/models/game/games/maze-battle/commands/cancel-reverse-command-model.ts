@@ -49,19 +49,23 @@ export class CancelReverseMazeBattleCommandModel extends CommandModel<MazeBattle
     return new CancelReverseMazeBattleCommandModel(props);
   }
 
-  public execute(gameState: MazeBattleGameStateModel): MazeBattleGameStateModel {
+  public execute(gameState: MazeBattleGameStateModel): boolean {
     if (!gameState.isStarted()) {
-      return gameState;
+      return false;
     }
 
     const character = gameState.getCharacter(this.playerId);
     if (!character) {
-      return gameState;
+      return false;
     }
 
-    const updatedCharacter = character.setReversed(false);
+    gameState.updateCharacter(character.setReversed(false));
 
-    return gameState.updateCharacter(updatedCharacter);
+    this.setUndoAction(() => {
+      gameState.updateCharacter(character);
+    });
+
+    return true;
   }
 
   public getPayload(): CancelReverseMazeBattleCommandModelPayload {

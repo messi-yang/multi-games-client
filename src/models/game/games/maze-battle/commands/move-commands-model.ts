@@ -7,6 +7,7 @@ import { generateUuidV4 } from '@/utils/uuid';
 import { WallVo } from '../wall-vo';
 import { DirectionEnum } from '../direction-enum';
 import { reverseDirection } from '../utils';
+import { ItemBoxVo } from '../item-box-vo';
 
 export type MoveMazeBattleCommandModelPayload = {
   direction: DirectionEnum;
@@ -52,14 +53,14 @@ export class MoveMazeBattleCommandModel extends CommandModel<MazeBattleGameState
     return new MoveMazeBattleCommandModel(props);
   }
 
-  public execute(gameState: MazeBattleGameStateModel): MazeBattleGameStateModel {
+  public execute(gameState: MazeBattleGameStateModel): boolean {
     if (!gameState.isStarted()) {
-      return gameState;
+      return false;
     }
 
     const character = gameState.getCharacter(this.playerId);
     if (!character) {
-      return gameState;
+      return false;
     }
 
     let newPosition = character.getPosition().shift(0, 0);
@@ -89,21 +90,31 @@ export class MoveMazeBattleCommandModel extends CommandModel<MazeBattleGameState
     const maze = gameState.getMaze();
     const cell = maze.getCell(newPosition);
     if (!cell || cell instanceof WallVo) {
-      return gameState;
+      return false;
     }
 
-    let newCharacter = character.updatePosition(newPosition);
+    let updatedCharacter = character.updatePosition(newPosition);
     if (newPosition.equals(maze.getEndPosition())) {
-      newCharacter = newCharacter.setReachedGoadAt(DateVo.now());
+      updatedCharacter = updatedCharacter.setReachedGoadAt(DateVo.now());
     }
 
     const itemBox = gameState.getItemBoxAtPosition(newPosition);
-    if (itemBox && newCharacter.getHeldItems().length < 2) {
-      newCharacter = newCharacter.addHeldItem(itemBox.getItem());
-      gameState = gameState.removeItemBoxAtPosition(newPosition);
+    let removedItemBox: ItemBoxVo | null = null;
+    if (itemBox && updatedCharacter.getHeldItems().length < 2) {
+      updatedCharacter = updatedCharacter.addHeldItem(itemBox.getItem());
+      gameState.removeItemBoxAtPosition(newPosition);
+      removedItemBox = itemBox;
     }
+    gameState.updateCharacter(updatedCharacter);
 
-    return gameState.updateCharacter(newCharacter);
+    this.setUndoAction(() => {
+      gameState.updateCharacter(character);
+      if (removedItemBox) {
+        gameState.addItemBox(removedItemBox);
+      }
+    });
+
+    return true;
   }
 
   public getPayload(): MoveMazeBattleCommandModelPayload {

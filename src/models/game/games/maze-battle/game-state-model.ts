@@ -4,8 +4,9 @@ import { MazeJson, MazeVo } from './maze-vo';
 import { ItemBoxJson, ItemBoxVo } from './item-box-vo';
 import { PositionVo } from './position-vo';
 import { DateVo } from '@/models/global/date-vo';
+import { EventHandler } from '@/event-dispatchers/common/event-handler';
 
-const WAITING_TIME = 10;
+const WAITING_TIME = 3;
 
 export type MazeBattleGameStateJson = {
   maze: MazeJson;
@@ -30,12 +31,22 @@ export class MazeBattleGameStateModel extends GameStateModel<MazeBattleGameState
 
   private startedAt: DateVo;
 
+  private characterUpdatedEventHandler: EventHandler<CharacterVo> = new EventHandler();
+
+  private itemBoxRemovedEventHandler: EventHandler<PositionVo> = new EventHandler();
+
+  private countdownUpdatedEventHandler: EventHandler<number> = new EventHandler();
+
+  private countdownInterval: NodeJS.Timeout | null = null;
+
   constructor(props: Props) {
     super();
     this.maze = props.maze;
     this.characters = props.characters;
     this.itemBoxes = props.itemBoxes;
     this.startedAt = props.startedAt;
+
+    this.startCountdown();
   }
 
   static create(props: Props): MazeBattleGameStateModel {
@@ -100,11 +111,10 @@ export class MazeBattleGameStateModel extends GameStateModel<MazeBattleGameState
     return character.getName();
   }
 
-  public updateCharacter(character: CharacterVo): MazeBattleGameStateModel {
-    return MazeBattleGameStateModel.create({
-      ...this.getProps(),
-      characters: this.characters.map((c) => (c.getId() === character.getId() ? character : c)),
-    });
+  public updateCharacter(character: CharacterVo): void {
+    this.characters = this.characters.map((c) => (c.getId() === character.getId() ? character : c));
+
+    this.publishCharacterUpdatedEvent(character);
   }
 
   public getItemBoxAtPosition(position: PositionVo): ItemBoxVo | null {
@@ -115,11 +125,14 @@ export class MazeBattleGameStateModel extends GameStateModel<MazeBattleGameState
     return this.itemBoxes;
   }
 
-  public removeItemBoxAtPosition(position: PositionVo): MazeBattleGameStateModel {
-    return MazeBattleGameStateModel.create({
-      ...this.getProps(),
-      itemBoxes: this.itemBoxes.filter((itemBox) => !itemBox.getPosition().equals(position)),
-    });
+  public addItemBox(itemBox: ItemBoxVo): void {
+    this.itemBoxes.push(itemBox);
+  }
+
+  public removeItemBoxAtPosition(position: PositionVo): void {
+    this.itemBoxes = this.itemBoxes.filter((itemBox) => !itemBox.getPosition().equals(position));
+
+    this.publishItemBoxRemovedEvent(position);
   }
 
   public getStartedAt(): DateVo {
@@ -127,7 +140,8 @@ export class MazeBattleGameStateModel extends GameStateModel<MazeBattleGameState
   }
 
   public getCountdown(): number {
-    return this.startedAt.addSeconds(WAITING_TIME).getDiffInSeconds(DateVo.now());
+    const countdown = this.startedAt.addSeconds(WAITING_TIME).getDiffInSeconds(DateVo.now());
+    return Math.max(-1, countdown);
   }
 
   public isStarted(): boolean {
@@ -136,5 +150,43 @@ export class MazeBattleGameStateModel extends GameStateModel<MazeBattleGameState
 
   public isEnded(): boolean {
     return false;
+  }
+
+  public startCountdown(): void {
+    this.countdownInterval = setInterval(() => {
+      if (this.isStarted()) {
+        this.publishCountdownUpdatedEvent(this.getCountdown());
+        if (this.countdownInterval) {
+          clearInterval(this.countdownInterval);
+          this.countdownInterval = null;
+        }
+      } else {
+        this.publishCountdownUpdatedEvent(this.getCountdown());
+      }
+    }, 100);
+  }
+
+  private publishCharacterUpdatedEvent(character: CharacterVo): void {
+    this.characterUpdatedEventHandler.publish(character);
+  }
+
+  public subscribeCharacterUpdatedEvent(callback: (character: CharacterVo) => void): () => void {
+    return this.characterUpdatedEventHandler.subscribe(callback);
+  }
+
+  private publishItemBoxRemovedEvent(position: PositionVo): void {
+    this.itemBoxRemovedEventHandler.publish(position);
+  }
+
+  public subscribeItemBoxRemovedEvent(callback: (position: PositionVo) => void): () => void {
+    return this.itemBoxRemovedEventHandler.subscribe(callback);
+  }
+
+  private publishCountdownUpdatedEvent(countdown: number): void {
+    this.countdownUpdatedEventHandler.publish(countdown);
+  }
+
+  public subscribeCountdownUpdatedEvent(callback: (countdown: number) => void): () => void {
+    return this.countdownUpdatedEventHandler.subscribe(callback);
   }
 }

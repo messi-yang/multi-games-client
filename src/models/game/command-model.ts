@@ -21,12 +21,15 @@ export abstract class CommandModel<GameState extends GameStateModel = GameStateM
 
   protected executedAt: DateVo;
 
+  protected undoAction: () => void;
+
   constructor(props: Props) {
     this.id = props.id;
     this.gameId = props.gameId;
     this.playerId = props.playerId;
     this.name = props.name;
     this.executedAt = props.executedAt;
+    this.undoAction = () => {};
   }
 
   public getId(): string {
@@ -55,7 +58,15 @@ export abstract class CommandModel<GameState extends GameStateModel = GameStateM
 
   abstract getPayload(): object;
 
-  abstract execute(gameState: GameState): GameState;
+  abstract execute(gameState: GameState): boolean;
 
   abstract toJson(): CommandJson;
+
+  public undo() {
+    this.undoAction();
+  }
+
+  protected setUndoAction(undoAction: () => void) {
+    this.undoAction = undoAction;
+  }
 }
