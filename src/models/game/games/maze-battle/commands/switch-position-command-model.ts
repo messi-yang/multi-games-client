@@ -2,7 +2,7 @@ import { DateVo } from '@/models/global/date-vo';
 import { CommandJson } from '../../../command-json';
 import { CommandModel } from '../../../command-model';
 import { MazeBattleGameStateModel } from '../game-state-model';
-import { MazeBattleCommandNameEnum } from '../game-command-name-enum';
+import { MazeBattleCommandNameEnum } from './game-command-name-enum';
 import { generateUuidV4 } from '@/utils/uuid';
 import { ItemNameEnum } from '../items/item-name-enum';
 

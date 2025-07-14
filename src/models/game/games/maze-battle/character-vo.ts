@@ -11,6 +11,7 @@ export type CharacterJson = {
   color: string;
   heldItems: ItemJson[];
   reversed: boolean;
+  blinded: boolean;
 };
 
 type Props = {
@@ -21,6 +22,7 @@ type Props = {
   color: string;
   heldItems: ItemVo[];
   reversed: boolean;
+  blinded: boolean;
 };
 
 export class CharacterVo {
@@ -38,6 +40,8 @@ export class CharacterVo {
 
   private reversed: boolean;
 
+  private blinded: boolean;
+
   private constructor(props: Props) {
     this.id = props.id;
     this.name = props.name;
@@ -46,6 +50,7 @@ export class CharacterVo {
     this.color = props.color;
     this.heldItems = props.heldItems;
     this.reversed = props.reversed;
+    this.blinded = props.blinded;
   }
 
   static create(props: Props): CharacterVo {
@@ -61,6 +66,7 @@ export class CharacterVo {
       color: json.color,
       heldItems: json.heldItems.map((item) => parseItemJson(item)),
       reversed: json.reversed,
+      blinded: json.blinded,
     });
   }
 
@@ -73,6 +79,7 @@ export class CharacterVo {
       color: this.color,
       heldItems: this.heldItems.map((item) => item.toJson()),
       reversed: this.reversed,
+      blinded: this.blinded,
     };
   }
 
@@ -85,6 +92,7 @@ export class CharacterVo {
       color: this.color,
       heldItems: this.heldItems,
       reversed: this.reversed,
+      blinded: this.blinded,
     };
   }
 
@@ -143,5 +151,13 @@ export class CharacterVo {
 
   public setReversed(reversed: boolean): CharacterVo {
     return CharacterVo.create({ ...this.getProps(), reversed });
+  }
+
+  public isBlinded(): boolean {
+    return this.blinded;
+  }
+
+  public setBlinded(blinded: boolean): CharacterVo {
+    return CharacterVo.create({ ...this.getProps(), blinded });
   }
 }

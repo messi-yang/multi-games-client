@@ -3,10 +3,12 @@ import { CommandModel } from '@/models/game/command-model';
 import { MoveMazeBattleCommandModel, MoveMazeBattleCommandModelPayload } from './move-commands-model';
 import { DateVo } from '@/models/global/date-vo';
 import { MazeBattleGameStateModel } from '../game-state-model';
-import { MazeBattleCommandNameEnum } from '../game-command-name-enum';
+import { MazeBattleCommandNameEnum } from './game-command-name-enum';
 import { SwitchPositionMazeBattleCommandModel, SwitchPositionMazeBattleCommandModelPayload } from './switch-position-command-model';
 import { ReverseDirectionMazeBattleCommandModel, ReverseDirectionMazeBattleCommandModelPayload } from './reverse-direction-command-model';
 import { CancelReverseMazeBattleCommandModel, CancelReverseMazeBattleCommandModelPayload } from './cancel-reverse-command-model';
+import { CancelBlindMazeBattleCommandModel, CancelBlindMazeBattleCommandModelPayload } from './cancel-blind-command-model';
+import { BlindMazeBattleCommandModel, BlindMazeBattleCommandModelPayload } from './blind-command-model';
 
 export function parseMazeBattleGameCommandJson(json: CommandJson): CommandModel<MazeBattleGameStateModel> {
   if (json.name === MazeBattleCommandNameEnum.Move) {
@@ -41,6 +43,25 @@ export function parseMazeBattleGameCommandJson(json: CommandJson): CommandModel<
   } else if (json.name === MazeBattleCommandNameEnum.CancelReverse) {
     const payload = json.payload as CancelReverseMazeBattleCommandModelPayload;
     return CancelReverseMazeBattleCommandModel.load({
+      id: json.id,
+      gameId: json.gameId,
+      playerId: json.playerId,
+      executedAt: DateVo.fromTimestamp(json.timestamp),
+      characterId: payload.characterId,
+    });
+  } else if (json.name === MazeBattleCommandNameEnum.Blind) {
+    const payload = json.payload as BlindMazeBattleCommandModelPayload;
+    return BlindMazeBattleCommandModel.load({
+      id: json.id,
+      gameId: json.gameId,
+      playerId: json.playerId,
+      executedAt: DateVo.fromTimestamp(json.timestamp),
+      characterId: payload.characterId,
+      targetCharacterId: payload.targetCharacterId,
+    });
+  } else if (json.name === MazeBattleCommandNameEnum.CancelBlind) {
+    const payload = json.payload as CancelBlindMazeBattleCommandModelPayload;
+    return CancelBlindMazeBattleCommandModel.load({
       id: json.id,
       gameId: json.gameId,
       playerId: json.playerId,

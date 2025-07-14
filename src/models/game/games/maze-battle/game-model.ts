@@ -57,6 +57,7 @@ export class MazeBattleGameModel extends GameModel<MazeBattleGameStateModel> {
           color: randomColors[i],
           heldItems: [],
           reversed: false,
+          blinded: false,
         })
       );
     }

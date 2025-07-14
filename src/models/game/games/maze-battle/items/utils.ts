@@ -1,6 +1,7 @@
 import { DirectionReverserItemVo } from './direction-reverser-item-vo';
 import { ItemNameEnum } from './item-name-enum';
 import { ItemJson, ItemVo } from './item-vo';
+import { BlinderItemVo } from './blinder-item-vo';
 import { PositionSwitcherItemVo } from './position-switcher-item-vo';
 
 export function parseItemJson(json: ItemJson): ItemVo {
@@ -8,6 +9,8 @@ export function parseItemJson(json: ItemJson): ItemVo {
     return PositionSwitcherItemVo.create();
   } else if (json.name === ItemNameEnum.DirectionReverser) {
     return DirectionReverserItemVo.create();
+  } else if (json.name === ItemNameEnum.Blinder) {
+    return BlinderItemVo.create();
   }
   throw new Error(`Unknown item name: ${json.name}`);
 }
@@ -21,6 +24,8 @@ export function createRandomItem(): ItemVo {
     return PositionSwitcherItemVo.create();
   } else if (itemName === ItemNameEnum.DirectionReverser) {
     return DirectionReverserItemVo.create();
+  } else if (itemName === ItemNameEnum.Blinder) {
+    return BlinderItemVo.create();
   }
   throw new Error(`Unknown item name: ${itemName}`);
 }

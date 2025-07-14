@@ -5,7 +5,7 @@ import { MazeBattleGameStateModel } from '../game-state-model';
 import { MazeBattleCommandNameEnum } from './game-command-name-enum';
 import { generateUuidV4 } from '@/utils/uuid';
 
-export type CancelReverseMazeBattleCommandModelPayload = {
+export type CancelBlindMazeBattleCommandModelPayload = {
   characterId: string;
 };
 
@@ -23,7 +23,7 @@ type Props = {
   characterId: string;
 };
 
-export class CancelReverseMazeBattleCommandModel extends CommandModel<MazeBattleGameStateModel> {
+export class CancelBlindMazeBattleCommandModel extends CommandModel<MazeBattleGameStateModel> {
   private characterId: string;
 
   constructor(props: Props) {
@@ -31,22 +31,22 @@ export class CancelReverseMazeBattleCommandModel extends CommandModel<MazeBattle
       id: props.id,
       gameId: props.gameId,
       playerId: props.playerId,
-      name: MazeBattleCommandNameEnum.CancelReverse,
+      name: MazeBattleCommandNameEnum.CancelBlind,
       executedAt: props.executedAt,
     });
     this.characterId = props.characterId;
   }
 
-  static create(props: CreateProps): CancelReverseMazeBattleCommandModel {
-    return new CancelReverseMazeBattleCommandModel({
+  static create(props: CreateProps): CancelBlindMazeBattleCommandModel {
+    return new CancelBlindMazeBattleCommandModel({
       ...props,
       id: generateUuidV4(),
       executedAt: DateVo.now(),
     });
   }
 
-  static load(props: Props): CancelReverseMazeBattleCommandModel {
-    return new CancelReverseMazeBattleCommandModel(props);
+  static load(props: Props): CancelBlindMazeBattleCommandModel {
+    return new CancelBlindMazeBattleCommandModel(props);
   }
 
   public execute(gameState: MazeBattleGameStateModel): boolean {
@@ -59,7 +59,7 @@ export class CancelReverseMazeBattleCommandModel extends CommandModel<MazeBattle
       return false;
     }
 
-    gameState.updateCharacter(character.setReversed(false));
+    gameState.updateCharacter(character.setBlinded(false));
 
     this.setUndoAction(() => {
       gameState.updateCharacter(character);
@@ -68,7 +68,7 @@ export class CancelReverseMazeBattleCommandModel extends CommandModel<MazeBattle
     return true;
   }
 
-  public getPayload(): CancelReverseMazeBattleCommandModelPayload {
+  public getPayload(): CancelBlindMazeBattleCommandModelPayload {
     return {
       characterId: this.characterId,
     };

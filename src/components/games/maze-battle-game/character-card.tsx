@@ -11,6 +11,8 @@ function ItemIcon({ itemName }: { itemName: ItemNameEnum }) {
     return <Image src="/assets/games/maze-battle/reverse.png" alt="Direction Reverser" width={20} height={20} />;
   } else if (itemName === ItemNameEnum.PositionSwitcher) {
     return <Image src="/assets/games/maze-battle/switch.png" alt="Position Switcher" width={20} height={20} />;
+  } else if (itemName === ItemNameEnum.Blinder) {
+    return <Image src="/assets/games/maze-battle/blinder.png" alt="Blinder" width={20} height={20} />;
   }
   return null;
 }

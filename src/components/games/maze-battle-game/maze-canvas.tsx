@@ -342,25 +342,20 @@ export function MazeCanvas({ myPlayerId, gameState }: Props) {
     const myCharacter = gameState.getCharacter(myPlayerId);
     if (!myCharacter) return;
 
+    const blindsMyPlayer = myCharacter.isBlinded() && !gameState.isEnded();
+
     maskContainer.x = myCharacter.getPosition().getX() * CELL_SIZE;
     maskContainer.y = myCharacter.getPosition().getY() * CELL_SIZE;
-    maskContainer.alpha = countdown > 0 ? 0 : 1;
-  }, [maskContainer, myPlayerId, countdown, gameState]);
+    maskContainer.alpha = blindsMyPlayer ? 1 : 0;
+  }, [maskContainer, myPlayerId, gameState]);
 
   useEffect(() => {
     updateMask();
-    const unsubscribeCharacterUpdatedEvent = gameState.subscribeCharacterUpdatedEvent(() => {
-      updateMask();
+    return gameState.subscribeCharacterUpdatedEvent((character) => {
+      if (character.getId() === myPlayerId) {
+        updateMask();
+      }
     });
-
-    const unsubscribeCountdownUpdatedEvent = gameState.subscribeCountdownUpdatedEvent(() => {
-      updateMask();
-    });
-
-    return () => {
-      unsubscribeCharacterUpdatedEvent();
-      unsubscribeCountdownUpdatedEvent();
-    };
   }, [updateMask, gameState]);
 
   return (

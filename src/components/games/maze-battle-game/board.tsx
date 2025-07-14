@@ -17,6 +17,8 @@ import { RoomService } from '@/services/room-service';
 import { NotificationEventHandler } from '@/event-dispatchers/notification-event-handler';
 import { CancelReverseMazeBattleCommandModel } from '@/models/game/games/maze-battle/commands/cancel-reverse-command-model';
 import { CharacterVo } from '@/models/game/games/maze-battle/character-vo';
+import { BlindMazeBattleCommandModel } from '@/models/game/games/maze-battle/commands/blind-command-model';
+import { CancelBlindMazeBattleCommandModel } from '@/models/game/games/maze-battle/commands/cancel-blind-command-model';
 
 type Props = {
   roomService: RoomService;
@@ -158,6 +160,15 @@ export function MazeBattleGameBoard({ roomService, myPlayerId, game, gameState, 
           targetCharacterId: selectedCharacterId,
         })
       );
+    } else if (item.getName() === ItemNameEnum.Blinder) {
+      onCommand(
+        BlindMazeBattleCommandModel.create({
+          gameId,
+          playerId: myPlayerId,
+          characterId: myCharacter.getId(),
+          targetCharacterId: selectedCharacterId,
+        })
+      );
     }
   }, [selectedCharacterId, myCharacter, gameId, myPlayerId, onCommand]);
 
@@ -179,7 +190,14 @@ export function MazeBattleGameBoard({ roomService, myPlayerId, game, gameState, 
     onCommand(CancelReverseMazeBattleCommandModel.create({ gameId, playerId: myPlayerId, characterId: myCharacterId }));
   }, [myCharacterId, gameId, myPlayerId, onCommand]);
 
-  const cancelReverseDebouncer = useMemo(() => debounce(cancelReverse, 5000), [cancelReverse]);
+  const cancelReverseDebouncer = useMemo(() => debounce(cancelReverse, 10000), [cancelReverse]);
+
+  const cancelBlind = useCallback(() => {
+    if (!myCharacterId) return;
+    onCommand(CancelBlindMazeBattleCommandModel.create({ gameId, playerId: myPlayerId, characterId: myCharacterId }));
+  }, [myCharacterId, gameId, myPlayerId, onCommand]);
+
+  const cancelBlindDebouncer = useMemo(() => debounce(cancelBlind, 10000), [cancelBlind]);
 
   useEffect(() => {
     return roomService.subscribe('COMMAND_EXECUTED', (command) => {
@@ -193,6 +211,17 @@ export function MazeBattleGameBoard({ roomService, myPlayerId, game, gameState, 
 
         if (targetCharacterId === myCharacterId) {
           cancelReverseDebouncer();
+        }
+      } else if (command instanceof BlindMazeBattleCommandModel) {
+        const characterName = gameState.getCharacterName(command.getCharacterId());
+
+        const targetCharacterId = command.getTargetCharacterId();
+        const targetCharacterName = gameState.getCharacterName(targetCharacterId);
+
+        notificationEventHandler.publishGeneralMessage(`${characterName} blinded ${targetCharacterName}!`);
+
+        if (targetCharacterId === myCharacterId) {
+          cancelBlindDebouncer();
         }
       } else if (command instanceof SwitchPositionMazeBattleCommandModel) {
         const characterName = gameState.getCharacterName(command.getCharacterId());

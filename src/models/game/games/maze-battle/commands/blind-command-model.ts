@@ -4,15 +4,18 @@ import { CommandModel } from '../../../command-model';
 import { MazeBattleGameStateModel } from '../game-state-model';
 import { MazeBattleCommandNameEnum } from './game-command-name-enum';
 import { generateUuidV4 } from '@/utils/uuid';
+import { ItemNameEnum } from '../items/item-name-enum';
 
-export type CancelReverseMazeBattleCommandModelPayload = {
+export type BlindMazeBattleCommandModelPayload = {
   characterId: string;
+  targetCharacterId: string;
 };
 
 type CreateProps = {
   gameId: string;
   playerId: string;
   characterId: string;
+  targetCharacterId: string;
 };
 
 type Props = {
@@ -21,32 +24,36 @@ type Props = {
   playerId: string;
   executedAt: DateVo;
   characterId: string;
+  targetCharacterId: string;
 };
 
-export class CancelReverseMazeBattleCommandModel extends CommandModel<MazeBattleGameStateModel> {
+export class BlindMazeBattleCommandModel extends CommandModel<MazeBattleGameStateModel> {
   private characterId: string;
+
+  private targetCharacterId: string;
 
   constructor(props: Props) {
     super({
       id: props.id,
       gameId: props.gameId,
       playerId: props.playerId,
-      name: MazeBattleCommandNameEnum.CancelReverse,
+      name: MazeBattleCommandNameEnum.Blind,
       executedAt: props.executedAt,
     });
     this.characterId = props.characterId;
+    this.targetCharacterId = props.targetCharacterId;
   }
 
-  static create(props: CreateProps): CancelReverseMazeBattleCommandModel {
-    return new CancelReverseMazeBattleCommandModel({
+  static create(props: CreateProps): BlindMazeBattleCommandModel {
+    return new BlindMazeBattleCommandModel({
       ...props,
       id: generateUuidV4(),
       executedAt: DateVo.now(),
     });
   }
 
-  static load(props: Props): CancelReverseMazeBattleCommandModel {
-    return new CancelReverseMazeBattleCommandModel(props);
+  static load(props: Props): BlindMazeBattleCommandModel {
+    return new BlindMazeBattleCommandModel(props);
   }
 
   public execute(gameState: MazeBattleGameStateModel): boolean {
@@ -59,18 +66,38 @@ export class CancelReverseMazeBattleCommandModel extends CommandModel<MazeBattle
       return false;
     }
 
-    gameState.updateCharacter(character.setReversed(false));
+    const targetCharacter = gameState.getCharacter(this.targetCharacterId);
+    if (!targetCharacter) {
+      return false;
+    }
+
+    if (character.getId() === targetCharacter.getId()) {
+      return false;
+    }
+
+    const firstHeldItem = character.getFirstHeldItem();
+    if (!firstHeldItem || firstHeldItem.getName() !== ItemNameEnum.Blinder) {
+      return false;
+    }
+
+    const updatedCharacter = character.removeFirstHeldItem();
+
+    const updatedTargetCharacter = targetCharacter.setBlinded(true);
+    gameState.updateCharacter(updatedCharacter);
+    gameState.updateCharacter(updatedTargetCharacter);
 
     this.setUndoAction(() => {
       gameState.updateCharacter(character);
+      gameState.updateCharacter(targetCharacter);
     });
 
     return true;
   }
 
-  public getPayload(): CancelReverseMazeBattleCommandModelPayload {
+  public getPayload(): BlindMazeBattleCommandModelPayload {
     return {
       characterId: this.characterId,
+      targetCharacterId: this.targetCharacterId,
     };
   }
 
@@ -87,5 +114,9 @@ export class CancelReverseMazeBattleCommandModel extends CommandModel<MazeBattle
 
   public getCharacterId(): string {
     return this.characterId;
+  }
+
+  public getTargetCharacterId(): string {
+    return this.targetCharacterId;
   }
 }
